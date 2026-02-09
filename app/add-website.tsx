@@ -1,16 +1,20 @@
-import { ScrollView, Text, View, TextInput, TouchableOpacity } from "react-native";
+import { ScrollView, Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { useWebsites } from "@/lib/websites-context";
+import type { Website } from "@/lib/types";
 
 export default function AddWebsiteScreen() {
   const colors = useColors();
   const router = useRouter();
+  const { addWebsite } = useWebsites();
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [websiteName, setWebsiteName] = useState("");
   const [category, setCategory] = useState<string>("blog");
+  const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
     { id: 'blog', label: 'Blog' },
@@ -20,9 +24,36 @@ export default function AddWebsiteScreen() {
     { id: 'other', label: 'Other' },
   ];
 
-  const handleAddWebsite = () => {
-    // In a real app, this would verify and add the website
-    router.back();
+  const handleAddWebsite = async () => {
+    if (!websiteUrl.trim() || !websiteName.trim()) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const newWebsite: Website = {
+        id: Date.now().toString(),
+        name: websiteName,
+        url: websiteUrl,
+        category: category as 'blog' | 'ecommerce' | 'portfolio' | 'business' | 'other',
+        verified: false,
+        addedDate: new Date().toISOString().split('T')[0],
+        totalVisits: 0,
+        monthlyVisits: 0,
+        weeklyGrowth: 0,
+        activeCampaigns: 0,
+      };
+
+      await addWebsite(newWebsite);
+      Alert.alert('Success', 'Website added successfully!');
+      router.back();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add website. Please try again.');
+      console.error('Error adding website:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -102,10 +133,13 @@ export default function AddWebsiteScreen() {
 
           {/* Add Button */}
           <TouchableOpacity
-            className="bg-primary rounded-full py-4 mt-4 active:opacity-80"
+            className={`rounded-full py-4 mt-4 ${isLoading ? 'bg-primary/50' : 'bg-primary active:opacity-80'}`}
             onPress={handleAddWebsite}
+            disabled={isLoading}
           >
-            <Text className="text-white font-semibold text-base text-center">Verify & Add Website</Text>
+            <Text className="text-white font-semibold text-base text-center">
+              {isLoading ? 'Adding...' : 'Verify & Add Website'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

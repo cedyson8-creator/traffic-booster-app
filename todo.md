@@ -28,3 +28,8 @@
 - [x] Mock data for demonstration
 - [x] Traffic metrics calculations
 - [x] Campaign status tracking
+
+## Bug Fixes & Improvements
+- [x] Implement AsyncStorage for website persistence
+- [x] Fix website input not storing/displaying new websites
+- [x] Add state management for user-added websites

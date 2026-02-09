@@ -5,21 +5,22 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { mockWebsites } from "@/lib/mock-data";
+import { useWebsites } from "@/lib/websites-context";
 
 export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const { websites, isLoading } = useWebsites();
 
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  const totalVisits = mockWebsites.reduce((sum, site) => sum + site.monthlyVisits, 0);
-  const activeCampaigns = mockWebsites.reduce((sum, site) => sum + site.activeCampaigns, 0);
-  const avgGrowth = mockWebsites.reduce((sum, site) => sum + site.weeklyGrowth, 0) / mockWebsites.length;
+  const totalVisits = websites.reduce((sum, site) => sum + site.monthlyVisits, 0);
+  const activeCampaigns = websites.reduce((sum, site) => sum + site.activeCampaigns, 0);
+  const avgGrowth = websites.length > 0 ? websites.reduce((sum, site) => sum + site.weeklyGrowth, 0) / websites.length : 0;
 
   return (
     <ScreenContainer>
@@ -68,7 +69,7 @@ export default function HomeScreen() {
         <View className="mb-4">
           <Text className="text-xl font-bold text-foreground mb-3">My Websites</Text>
           
-          {mockWebsites.length === 0 ? (
+          {websites.length === 0 ? (
             <View className="bg-surface rounded-2xl p-8 border border-border items-center">
               <IconSymbol name="globe" size={48} color={colors.muted} />
               <Text className="text-base text-muted mt-4 text-center">
@@ -77,7 +78,7 @@ export default function HomeScreen() {
             </View>
           ) : (
             <View className="gap-3">
-              {mockWebsites.map((website) => (
+              {websites.map((website) => (
                 <TouchableOpacity
                   key={website.id}
                   className="bg-surface rounded-2xl p-4 border border-border active:opacity-70"
