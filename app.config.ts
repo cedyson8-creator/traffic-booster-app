@@ -32,7 +32,7 @@ const env = {
   appSlug: "traffic-booster-app",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "",
+  logoUrl: "https://private-us-east-1.manuscdn.com/sessionFile/6zdSkKMzmZuqD3wgsS4hpi/sandbox/8wg25aLdqsH8TyCN4EI2Z5-img-1_1770622440000_na1fn_dHJhZmZpYy1ib29zdGVyLWljb24.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvNnpkU2tLTXptWnVxRDN3Z3NTNGhwaS9zYW5kYm94Lzh3ZzI1YUxkcXNIOFR5Q040RUkyWjUtaW1nLTFfMTc3MDYyMjQ0MDAwMF9uYTFmbl9kSEpoWm1acFl5MWliMjl6ZEdWeUxXbGpiMjQucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=sVmYbWHWB~Ck1sFGRTK1l7~ttlAs4pNODlCejgwx2~JLefGKvD8~ijMujZkCd8tP6xFN~6YVp7VHyZLmOTga5DEGOUVVzqmShijLmuQGGYVcBS0BDbVKYt2xAIUs9il5G~KqxwVBv-gNET6q3czCAlKu5Wq3DlKehRaI7YK-76DLxnsCLPAdLO5k3HBuOYRQsAyrCx~eg01BlM8Gdd4OOmeFmEVRhJ70YxaQmITy52cMYeoFkYnA7wsimac5qP2wCocOj8SoRzzakb2by2yddZDiCfJ5h1T1D1HgqpxZWVWsv5dAVSiCCQfDrSHO8ErnDf2YRWP8w5PAWaWnNq6iEg__",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,

@@ -1,46 +1,127 @@
-import { ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, RefreshControl } from "react-native";
+import { useState } from "react";
+import { useRouter } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useColors } from "@/hooks/use-colors";
+import { mockWebsites } from "@/lib/mock-data";
 
-/**
- * Home Screen - NativeWind Example
- *
- * This template uses NativeWind (Tailwind CSS for React Native).
- * You can use familiar Tailwind classes directly in className props.
- *
- * Key patterns:
- * - Use `className` instead of `style` for most styling
- * - Theme colors: use tokens directly (bg-background, text-foreground, bg-primary, etc.); no dark: prefix needed
- * - Responsive: standard Tailwind breakpoints work on web
- * - Custom colors defined in tailwind.config.js
- */
 export default function HomeScreen() {
+  const colors = useColors();
+  const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const totalVisits = mockWebsites.reduce((sum, site) => sum + site.monthlyVisits, 0);
+  const activeCampaigns = mockWebsites.reduce((sum, site) => sum + site.activeCampaigns, 0);
+  const avgGrowth = mockWebsites.reduce((sum, site) => sum + site.weeklyGrowth, 0) / mockWebsites.length;
+
   return (
-    <ScreenContainer className="p-6">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="flex-1 gap-8">
-          {/* Hero Section */}
-          <View className="items-center gap-2">
-            <Text className="text-4xl font-bold text-foreground">Welcome</Text>
-            <Text className="text-base text-muted text-center">
-              Edit app/(tabs)/index.tsx to get started
-            </Text>
-          </View>
+    <ScreenContainer>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Header */}
+        <View className="mb-6">
+          <Text className="text-3xl font-bold text-foreground">Dashboard</Text>
+          <Text className="text-base text-muted mt-1">Track your website traffic growth</Text>
+        </View>
 
-          {/* Example Card */}
-          <View className="w-full max-w-sm self-center bg-surface rounded-2xl p-6 shadow-sm border border-border">
-            <Text className="text-lg font-semibold text-foreground mb-2">NativeWind Ready</Text>
-            <Text className="text-sm text-muted leading-relaxed">
-              Use Tailwind CSS classes directly in your React Native components.
-            </Text>
+        {/* Quick Stats */}
+        <View className="flex-row gap-3 mb-6">
+          <View className="flex-1 bg-surface rounded-2xl p-4 border border-border">
+            <Text className="text-sm text-muted mb-1">Monthly Visits</Text>
+            <Text className="text-2xl font-bold text-foreground">{totalVisits.toLocaleString()}</Text>
           </View>
+          <View className="flex-1 bg-surface rounded-2xl p-4 border border-border">
+            <Text className="text-sm text-muted mb-1">Active Campaigns</Text>
+            <Text className="text-2xl font-bold text-foreground">{activeCampaigns}</Text>
+          </View>
+        </View>
 
-          {/* Example Button */}
-          <View className="items-center">
-            <TouchableOpacity className="bg-primary px-6 py-3 rounded-full active:opacity-80">
-              <Text className="text-background font-semibold">Get Started</Text>
-            </TouchableOpacity>
+        <View className="bg-surface rounded-2xl p-4 border border-border mb-6">
+          <Text className="text-sm text-muted mb-1">Avg Weekly Growth</Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-2xl font-bold text-success">+{avgGrowth.toFixed(1)}%</Text>
+            <IconSymbol name="arrow.up.right" size={20} color={colors.success} />
           </View>
+        </View>
+
+        {/* Add Website Button */}
+        <TouchableOpacity
+          className="bg-primary rounded-full py-4 mb-6 active:opacity-80"
+          onPress={() => router.push('/add-website')}
+        >
+          <View className="flex-row items-center justify-center gap-2">
+            <IconSymbol name="plus.circle.fill" size={24} color="#ffffff" />
+            <Text className="text-white font-semibold text-base">Add New Website</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* My Websites */}
+        <View className="mb-4">
+          <Text className="text-xl font-bold text-foreground mb-3">My Websites</Text>
+          
+          {mockWebsites.length === 0 ? (
+            <View className="bg-surface rounded-2xl p-8 border border-border items-center">
+              <IconSymbol name="globe" size={48} color={colors.muted} />
+              <Text className="text-base text-muted mt-4 text-center">
+                No websites yet. Add your first website to start tracking traffic.
+              </Text>
+            </View>
+          ) : (
+            <View className="gap-3">
+              {mockWebsites.map((website) => (
+                <TouchableOpacity
+                  key={website.id}
+                  className="bg-surface rounded-2xl p-4 border border-border active:opacity-70"
+                  onPress={() => router.push(`/website/${website.id}`)}
+                >
+                  <View className="flex-row items-start justify-between mb-3">
+                    <View className="flex-1">
+                      <Text className="text-lg font-semibold text-foreground mb-1">
+                        {website.name}
+                      </Text>
+                      <Text className="text-sm text-muted" numberOfLines={1}>
+                        {website.url}
+                      </Text>
+                    </View>
+                    <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+                  </View>
+
+                  <View className="flex-row items-center gap-4">
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted mb-1">Monthly Visits</Text>
+                      <Text className="text-base font-semibold text-foreground">
+                        {website.monthlyVisits.toLocaleString()}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted mb-1">Weekly Growth</Text>
+                      <View className="flex-row items-center gap-1">
+                        <Text className="text-base font-semibold text-success">
+                          +{website.weeklyGrowth}%
+                        </Text>
+                        <IconSymbol name="arrow.up.right" size={14} color={colors.success} />
+                      </View>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs text-muted mb-1">Campaigns</Text>
+                      <Text className="text-base font-semibold text-foreground">
+                        {website.activeCampaigns}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </ScreenContainer>
