@@ -5,17 +5,19 @@ import { LineChart } from "react-native-gifted-charts";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { mockCampaigns, generateTrafficStats } from "@/lib/mock-data";
+import { generateTrafficStats } from "@/lib/mock-data";
 import { useWebsites } from "@/lib/websites-context";
+import { useCampaigns } from "@/lib/campaigns-context";
 
 export default function WebsiteDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const colors = useColors();
   const { websites } = useWebsites();
+  const { campaigns } = useCampaigns();
 
   const website = websites.find((w) => w.id === id);
-  const campaigns = mockCampaigns.filter((c) => c.websiteId === id);
+  const websiteCampaigns = campaigns.filter((c) => c.websiteId === id);
   const trafficData = generateTrafficStats(7);
 
   if (!website) {
@@ -97,7 +99,7 @@ export default function WebsiteDetailsScreen() {
         {/* Active Campaigns */}
         <View className="mb-6">
           <Text className="text-lg font-bold text-foreground mb-3">Active Campaigns</Text>
-          {campaigns.length === 0 ? (
+          {websiteCampaigns.length === 0 ? (
             <View className="bg-surface rounded-2xl p-6 border border-border items-center">
               <Text className="text-sm text-muted text-center">
                 No active campaigns. Start a campaign to boost traffic.
@@ -105,7 +107,7 @@ export default function WebsiteDetailsScreen() {
             </View>
           ) : (
             <View className="gap-3">
-              {campaigns.map((campaign) => (
+              {websiteCampaigns.map((campaign) => (
                 <View key={campaign.id} className="bg-surface rounded-2xl p-4 border border-border">
                   <View className="flex-row items-start justify-between mb-2">
                     <View className="flex-1">

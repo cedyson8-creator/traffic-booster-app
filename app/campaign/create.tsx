@@ -1,20 +1,24 @@
-import { ScrollView, Text, View, TouchableOpacity, TextInput } from "react-native";
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Alert } from "react-native";
 import { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Slider from "@react-native-community/slider";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
+import { useCampaigns } from "@/lib/campaigns-context";
+import type { Campaign } from "@/lib/types";
 
 export default function CreateCampaignScreen() {
   const { websiteId } = useLocalSearchParams<{ websiteId: string }>();
   const router = useRouter();
   const colors = useColors();
+  const { addCampaign } = useCampaigns();
 
   const [campaignName, setCampaignName] = useState("");
   const [campaignType, setCampaignType] = useState<string>("social");
   const [targetVisits, setTargetVisits] = useState(10000);
   const [duration, setDuration] = useState(30);
+  const [isLoading, setIsLoading] = useState(false);
 
   const campaignTypes = [
     { id: 'social', label: 'Social Media', description: 'Promote on social platforms' },
@@ -22,9 +26,38 @@ export default function CreateCampaignScreen() {
     { id: 'seo', label: 'SEO Boost', description: 'Optimize search visibility' },
   ];
 
-  const handleCreateCampaign = () => {
-    // In a real app, this would create the campaign
-    router.back();
+  const handleCreateCampaign = async () => {
+    if (!campaignName.trim() || !websiteId) {
+      Alert.alert('Error', 'Please enter a campaign name');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const estimatedCost = Math.floor(targetVisits / 100 * duration / 30);
+      
+      const newCampaign: Campaign = {
+        id: Date.now().toString(),
+        websiteId,
+        name: campaignName,
+        type: campaignType as 'social' | 'content' | 'seo',
+        status: 'active',
+        targetVisits,
+        currentVisits: 0,
+        duration,
+        budget: estimatedCost,
+        startDate: new Date().toISOString().split('T')[0],
+      };
+
+      await addCampaign(newCampaign);
+      Alert.alert('Success', 'Campaign launched successfully!');
+      router.back();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create campaign. Please try again.');
+      console.error('Error creating campaign:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -147,10 +180,13 @@ export default function CreateCampaignScreen() {
 
           {/* Create Button */}
           <TouchableOpacity
-            className="bg-primary rounded-full py-4 mt-2 active:opacity-80"
+            className={`rounded-full py-4 mt-2 ${isLoading ? 'bg-primary/50' : 'bg-primary active:opacity-80'}`}
             onPress={handleCreateCampaign}
+            disabled={isLoading}
           >
-            <Text className="text-white font-semibold text-base text-center">Launch Campaign</Text>
+            <Text className="text-white font-semibold text-base text-center">
+              {isLoading ? 'Launching...' : 'Launch Campaign'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

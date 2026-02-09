@@ -34,3 +34,4 @@
 - [x] Fix website input not storing/displaying new websites
 - [x] Add state management for user-added websites
 - [x] Fix website details screen not finding newly added websites
+- [x] Fix campaign creation not saving/starting campaigns
