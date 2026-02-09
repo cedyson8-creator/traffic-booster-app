@@ -33,3 +33,4 @@
 - [x] Implement AsyncStorage for website persistence
 - [x] Fix website input not storing/displaying new websites
 - [x] Add state management for user-added websites
+- [x] Fix website details screen not finding newly added websites

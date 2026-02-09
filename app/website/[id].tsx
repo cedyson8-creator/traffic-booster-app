@@ -5,14 +5,16 @@ import { LineChart } from "react-native-gifted-charts";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
-import { mockWebsites, mockCampaigns, generateTrafficStats } from "@/lib/mock-data";
+import { mockCampaigns, generateTrafficStats } from "@/lib/mock-data";
+import { useWebsites } from "@/lib/websites-context";
 
 export default function WebsiteDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const colors = useColors();
+  const { websites } = useWebsites();
 
-  const website = mockWebsites.find((w) => w.id === id);
+  const website = websites.find((w) => w.id === id);
   const campaigns = mockCampaigns.filter((c) => c.websiteId === id);
   const trafficData = generateTrafficStats(7);
 
