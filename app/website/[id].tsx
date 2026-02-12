@@ -96,45 +96,76 @@ export default function WebsiteDetailsScreen() {
           </View>
         </View>
 
-        {/* Active Campaigns */}
+        {/* Campaigns Section */}
         <View className="mb-6">
-          <Text className="text-lg font-bold text-foreground mb-3">Active Campaigns</Text>
+          <Text className="text-lg font-bold text-foreground mb-3">Campaigns</Text>
           {websiteCampaigns.length === 0 ? (
             <View className="bg-surface rounded-2xl p-6 border border-border items-center">
               <Text className="text-sm text-muted text-center">
-                No active campaigns. Start a campaign to boost traffic.
+                No campaigns yet. Start a campaign to boost traffic.
               </Text>
             </View>
           ) : (
             <View className="gap-3">
-              {websiteCampaigns.map((campaign) => (
-                <View key={campaign.id} className="bg-surface rounded-2xl p-4 border border-border">
-                  <View className="flex-row items-start justify-between mb-2">
-                    <View className="flex-1">
-                      <Text className="text-base font-semibold text-foreground">{campaign.name}</Text>
-                      <Text className="text-xs text-muted mt-1 capitalize">{campaign.type} Campaign</Text>
+              {websiteCampaigns.map((campaign) => {
+                const isActive = campaign.status === 'active';
+                const isPaused = campaign.status === 'paused';
+                const isCompleted = campaign.status === 'completed';
+                
+                return (
+                  <View 
+                    key={campaign.id} 
+                    className={`rounded-2xl p-4 border ${
+                      isActive ? 'bg-surface border-primary/30' : 'bg-surface/50 border-border opacity-70'
+                    }`}
+                  >
+                    <View className="flex-row items-start justify-between mb-2">
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">{campaign.name}</Text>
+                        <Text className="text-xs text-muted mt-1 capitalize">{campaign.type} Campaign</Text>
+                      </View>
+                      <View className={`px-3 py-1 rounded-full ${
+                        isActive 
+                          ? 'bg-success/10' 
+                          : isPaused
+                          ? 'bg-warning/10'
+                          : 'bg-error/10'
+                      }`}>
+                        <Text className={`text-xs font-medium capitalize ${
+                          isActive
+                            ? 'text-success'
+                            : isPaused
+                            ? 'text-warning'
+                            : 'text-error'
+                        }`}>
+                          {isActive ? '🟢 Active' : isPaused ? '🟡 Paused' : '🔴 Completed'}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="bg-success/10 px-3 py-1 rounded-full">
-                      <Text className="text-xs font-medium text-success capitalize">{campaign.status}</Text>
+                    
+                    <View className="mt-3">
+                      <View className="flex-row items-center justify-between mb-1">
+                        <Text className="text-xs text-muted">Progress</Text>
+                        <Text className="text-xs text-muted">
+                          {campaign.currentVisits.toLocaleString()} / {campaign.targetVisits.toLocaleString()}
+                        </Text>
+                      </View>
+                      <View className="h-2 bg-border rounded-full overflow-hidden">
+                        <View
+                          className={`h-full rounded-full ${
+                            isActive
+                              ? 'bg-primary'
+                              : isPaused
+                              ? 'bg-warning'
+                              : 'bg-success'
+                          }`}
+                          style={{ width: `${(campaign.currentVisits / campaign.targetVisits) * 100}%` }}
+                        />
+                      </View>
                     </View>
                   </View>
-                  
-                  <View className="mt-3">
-                    <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-xs text-muted">Progress</Text>
-                      <Text className="text-xs text-muted">
-                        {campaign.currentVisits.toLocaleString()} / {campaign.targetVisits.toLocaleString()}
-                      </Text>
-                    </View>
-                    <View className="h-2 bg-border rounded-full overflow-hidden">
-                      <View
-                        className="h-full bg-primary rounded-full"
-                        style={{ width: `${(campaign.currentVisits / campaign.targetVisits) * 100}%` }}
-                      />
-                    </View>
-                  </View>
-                </View>
-              ))}
+                );
+              })}
             </View>
           )}
         </View>

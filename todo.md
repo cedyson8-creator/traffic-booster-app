@@ -35,3 +35,5 @@
 - [x] Add state management for user-added websites
 - [x] Fix website details screen not finding newly added websites
 - [x] Fix campaign creation not saving/starting campaigns
+- [x] Add visual indicators for active vs inactive campaigns
+- [ ] Add pause/resume campaign functionality
