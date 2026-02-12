@@ -20,7 +20,8 @@ export interface Campaign {
   targetVisits: number;
   currentVisits: number;
   startDate: string;
-  endDate: string;
+  endDate?: string;
+  duration: number;
   budget: number;
 }
 

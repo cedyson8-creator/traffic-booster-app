@@ -50,6 +50,7 @@ export const mockCampaigns: Campaign[] = [
     currentVisits: 32400,
     startDate: '2026-02-01',
     endDate: '2026-02-28',
+    duration: 28,
     budget: 500,
   },
   {
@@ -62,6 +63,7 @@ export const mockCampaigns: Campaign[] = [
     currentVisits: 18200,
     startDate: '2026-02-05',
     endDate: '2026-03-05',
+    duration: 30,
     budget: 300,
   },
   {
@@ -73,6 +75,7 @@ export const mockCampaigns: Campaign[] = [
     targetVisits: 25000,
     currentVisits: 15600,
     startDate: '2026-02-03',
+    duration: 30,
     endDate: '2026-02-24',
     budget: 400,
   },
