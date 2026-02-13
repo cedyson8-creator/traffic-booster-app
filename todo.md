@@ -168,3 +168,11 @@
 - [x] Build performance comparison tools
 - [x] Add forecast vs actual tracking
 - [x] Implement custom alert thresholds
+
+## API Credentials Acquisition
+- [x] Obtain Meta/Facebook App ID and App Secret
+- [x] Obtain Google Analytics OAuth Client ID and Client Secret
+- [ ] Obtain Fiverr API Key and API Secret
+- [ ] Test all real API integrations with obtained credentials
+- [ ] Verify real data syncing from all platforms
+- [ ] Publish app with real integrations enabled
