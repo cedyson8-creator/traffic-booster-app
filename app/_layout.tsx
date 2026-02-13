@@ -26,6 +26,7 @@ import { RecommendationsProvider } from '@/lib/recommendations-context';
 import { ABTestingProvider } from '@/lib/ab-testing-context';
 import { NotificationsProvider } from '@/lib/notifications-context';
 import { PredictiveAnalyticsProvider } from '@/lib/predictive-analytics-context';
+import { SegmentationProvider } from '@/lib/segmentation-context';
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -90,6 +91,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NotificationsProvider>
         <PredictiveAnalyticsProvider>
+        <SegmentationProvider>
         <SyncProvider>
           <WebsitesProvider>
             <CampaignsProvider>
@@ -114,6 +116,7 @@ export default function RootLayout() {
             </CampaignsProvider>
           </WebsitesProvider>
         </SyncProvider>
+        </SegmentationProvider>
         </PredictiveAnalyticsProvider>
       </NotificationsProvider>
     </GestureHandlerRootView>
