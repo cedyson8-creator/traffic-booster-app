@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, Dimensions } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import { LineChart, PieChart } from "react-native-gifted-charts";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -9,6 +10,7 @@ import { generateTrafficStats, mockTrafficSources, mockGeographicData, mockTopPa
 type TimeRange = '7d' | '30d' | 'all';
 
 export default function AnalyticsScreen() {
+  const router = useRouter();
   const colors = useColors();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
 
@@ -32,9 +34,17 @@ export default function AnalyticsScreen() {
     <ScreenContainer>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}>
         {/* Header */}
-        <View className="mb-6">
-          <Text className="text-3xl font-bold text-foreground">Analytics</Text>
-          <Text className="text-base text-muted mt-1">Comprehensive traffic insights</Text>
+        <View className="mb-6 flex-row items-start justify-between">
+          <View className="flex-1">
+            <Text className="text-3xl font-bold text-foreground">Analytics</Text>
+            <Text className="text-base text-muted mt-1">Comprehensive traffic insights</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/integrations-dashboard")}
+            className="bg-primary rounded-lg px-3 py-2 ml-2"
+          >
+            <Text className="text-background text-xs font-semibold">Integrations</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Time Range Selector */}

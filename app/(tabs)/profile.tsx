@@ -72,7 +72,7 @@ export default function ProfileScreen() {
         {/* Integrations Card */}
         <TouchableOpacity
           onPress={() => router.push("/integrations")}
-          className="bg-surface rounded-2xl p-4 border border-border mb-6 flex-row items-center justify-between"
+          className="bg-surface rounded-2xl p-4 border border-border mb-3 flex-row items-center justify-between"
         >
           <View className="flex-row items-center gap-3 flex-1">
             <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
@@ -81,6 +81,23 @@ export default function ProfileScreen() {
             <View className="flex-1">
               <Text className="text-lg font-semibold text-foreground">Integrations</Text>
               <Text className="text-sm text-muted">Connect your accounts</Text>
+            </View>
+          </View>
+          <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+        </TouchableOpacity>
+
+        {/* Sync Status Card */}
+        <TouchableOpacity
+          onPress={() => router.push("/sync-status" as any)}
+          className="bg-surface rounded-2xl p-4 border border-border mb-6 flex-row items-center justify-between"
+        >
+          <View className="flex-row items-center gap-3 flex-1">
+            <View className="w-12 h-12 rounded-full bg-success items-center justify-center">
+              <IconSymbol name="arrow.clockwise" size={24} color={colors.background} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-foreground">Sync Status</Text>
+              <Text className="text-sm text-muted">View sync history</Text>
             </View>
           </View>
           <IconSymbol name="chevron.right" size={20} color={colors.muted} />
