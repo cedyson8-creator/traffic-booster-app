@@ -184,4 +184,6 @@
 - [x] Build email scheduling system for reports
 - [x] Create report templates and customization UI
 - [x] Test all export and reporting features
+- [x] Integrate export routes into backend server
+- [x] Verify export endpoints are working
 - [ ] Publish app with new export features
