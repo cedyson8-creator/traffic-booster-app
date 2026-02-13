@@ -80,9 +80,17 @@ export default function IntegrationsScreen() {
         <View className="gap-4">
           {/* Header */}
           <View className="mb-4">
-            <TouchableOpacity onPress={() => router.back()} className="mb-4">
-              <Text className="text-primary text-base font-semibold">← Back</Text>
-            </TouchableOpacity>
+            <View className="flex-row items-center justify-between mb-4">
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text className="text-primary text-base font-semibold">← Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/credentials" as any)}
+                className="bg-primary rounded-lg px-3 py-2"
+              >
+                <Text className="text-background text-xs font-semibold">Manage Keys</Text>
+              </TouchableOpacity>
+            </View>
             <Text className="text-3xl font-bold text-foreground mb-2">Integrations</Text>
             <Text className="text-muted">Connect your accounts to sync real traffic data</Text>
           </View>
