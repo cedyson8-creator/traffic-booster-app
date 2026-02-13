@@ -1,6 +1,19 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import {
+  InsertUser,
+  users,
+  websites,
+  campaigns,
+  integrationCredentials,
+  trafficMetrics,
+  integrationSyncLog,
+  InsertWebsite,
+  InsertCampaign,
+  InsertIntegrationCredential,
+  InsertTrafficMetric,
+  InsertIntegrationSyncLog,
+} from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +102,154 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Website operations
+ */
+export async function getUserWebsites(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(websites).where(eq(websites.userId, userId));
+}
+
+export async function createWebsite(data: InsertWebsite) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(websites).values(data);
+  return true;
+}
+
+export async function updateWebsite(id: number, data: Partial<InsertWebsite>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(websites).set(data).where(eq(websites.id, id));
+}
+
+export async function deleteWebsite(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(websites).where(eq(websites.id, id));
+}
+
+/**
+ * Campaign operations
+ */
+export async function getUserCampaigns(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(campaigns).where(eq(campaigns.userId, userId));
+}
+
+export async function getWebsiteCampaigns(websiteId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(campaigns).where(eq(campaigns.websiteId, websiteId));
+}
+
+export async function createCampaign(data: InsertCampaign) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(campaigns).values(data);
+  return true;
+}
+
+export async function updateCampaign(id: number, data: Partial<InsertCampaign>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(campaigns).set(data).where(eq(campaigns.id, id));
+}
+
+export async function deleteCampaign(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(campaigns).where(eq(campaigns.id, id));
+}
+
+/**
+ * Integration Credentials operations
+ */
+export async function getUserIntegrations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(integrationCredentials).where(eq(integrationCredentials.userId, userId));
+}
+
+export async function getIntegrationByProvider(userId: number, provider: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(integrationCredentials)
+    .where(and(eq(integrationCredentials.userId, userId), eq(integrationCredentials.provider, provider as any)));
+  return result[0] || null;
+}
+
+export async function createIntegration(data: InsertIntegrationCredential) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(integrationCredentials).values(data);
+  return true;
+}
+
+export async function updateIntegration(id: number, data: Partial<InsertIntegrationCredential>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(integrationCredentials).set(data).where(eq(integrationCredentials.id, id));
+}
+
+export async function deleteIntegration(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(integrationCredentials).where(eq(integrationCredentials.id, id));
+}
+
+/**
+ * Traffic Metrics operations
+ */
+export async function getWebsiteMetrics(websiteId: number, days: number = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  return db
+    .select()
+    .from(trafficMetrics)
+    .where(and(eq(trafficMetrics.websiteId, websiteId)))
+    .orderBy(trafficMetrics.date);
+}
+
+export async function createTrafficMetric(data: InsertTrafficMetric) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(trafficMetrics).values(data);
+  return true;
+}
+
+export async function createMultipleMetrics(data: InsertTrafficMetric[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(trafficMetrics).values(data);
+  return true;
+}
+
+/**
+ * Integration Sync Log operations
+ */
+export async function logIntegrationSync(data: InsertIntegrationSyncLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(integrationSyncLog).values(data);
+  return true;
+}
+
+export async function getIntegrationSyncHistory(userId: number, provider: string, limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db
+    .select()
+    .from(integrationSyncLog)
+    .where(and(eq(integrationSyncLog.userId, userId), eq(integrationSyncLog.provider, provider as any)))
+    .orderBy(integrationSyncLog.syncedAt)
+    .limit(limit);
+}
