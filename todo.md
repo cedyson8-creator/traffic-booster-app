@@ -172,7 +172,7 @@
 ## API Credentials Acquisition
 - [x] Obtain Meta/Facebook App ID and App Secret
 - [x] Obtain Google Analytics OAuth Client ID and Client Secret
-- [ ] Obtain Fiverr API Key and API Secret
-- [ ] Test all real API integrations with obtained credentials
-- [ ] Verify real data syncing from all platforms
-- [ ] Publish app with real integrations enabled
+- [ ] Obtain Fiverr API Key and API Secret (deferred - waitlist)
+- [x] Test Meta and Google Analytics integrations
+- [x] Verify real data syncing from Meta and Google Analytics
+- [ ] Publish app with Meta + Google Analytics integrations enabled
