@@ -56,3 +56,13 @@
 - [x] Implement Instagram API integration
 - [x] Add real data sync to traffic metrics
 - [x] Test all integrations end-to-end
+
+## Integration UI
+- [x] Create integrations/settings screen
+- [x] Add Google Analytics connection UI
+- [x] Add Fiverr connection UI
+- [x] Add Facebook connection UI
+- [x] Add Twitter connection UI
+- [x] Add Instagram connection UI
+- [x] Add sync status indicators
+- [x] Add manual sync buttons

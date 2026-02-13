@@ -1,5 +1,6 @@
 import { ScrollView, Text, View, TouchableOpacity, Switch } from "react-native";
 import { useState } from "react";
+import { useRouter } from "expo-router";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -8,6 +9,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { mockWebsites } from "@/lib/mock-data";
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const colors = useColors();
   const colorScheme = useColorScheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -66,6 +68,23 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* Integrations Card */}
+        <TouchableOpacity
+          onPress={() => router.push("/integrations")}
+          className="bg-surface rounded-2xl p-4 border border-border mb-6 flex-row items-center justify-between"
+        >
+          <View className="flex-row items-center gap-3 flex-1">
+            <View className="w-12 h-12 rounded-full bg-primary items-center justify-center">
+              <IconSymbol name="chevron.right" size={24} color={colors.background} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-semibold text-foreground">Integrations</Text>
+              <Text className="text-sm text-muted">Connect your accounts</Text>
+            </View>
+          </View>
+          <IconSymbol name="chevron.right" size={20} color={colors.muted} />
+        </TouchableOpacity>
 
         {/* Settings Sections */}
         {settingsSections.map((section) => (
