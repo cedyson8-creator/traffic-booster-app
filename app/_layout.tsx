@@ -23,6 +23,7 @@ import { CampaignsProvider } from "@/lib/campaigns-context";
 import { IntegrationsProvider } from '@/lib/integrations-context';
 import { SyncProvider } from '@/lib/sync-context';
 import { RecommendationsProvider } from '@/lib/recommendations-context';
+import { ABTestingProvider } from '@/lib/ab-testing-context';
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -89,9 +90,10 @@ export default function RootLayout() {
         <WebsitesProvider>
           <CampaignsProvider>
             <RecommendationsProvider>
-              <IntegrationsProvider>
-                <trpc.Provider client={trpcClient} queryClient={queryClient}>
-                  <QueryClientProvider client={queryClient}>
+              <ABTestingProvider>
+                <IntegrationsProvider>
+                  <trpc.Provider client={trpcClient} queryClient={queryClient}>
+                    <QueryClientProvider client={queryClient}>
           {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
           {/* If a screen needs the native header, explicitly enable it and set a human title via Stack.Screen options. */}
           {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
@@ -100,9 +102,10 @@ export default function RootLayout() {
             <Stack.Screen name="oauth/callback" />
           </Stack>
           <StatusBar style="auto" />
-                  </QueryClientProvider>
-                </trpc.Provider>
-              </IntegrationsProvider>
+                    </QueryClientProvider>
+                  </trpc.Provider>
+                </IntegrationsProvider>
+              </ABTestingProvider>
             </RecommendationsProvider>
           </CampaignsProvider>
         </WebsitesProvider>
