@@ -24,6 +24,7 @@ import { IntegrationsProvider } from '@/lib/integrations-context';
 import { SyncProvider } from '@/lib/sync-context';
 import { RecommendationsProvider } from '@/lib/recommendations-context';
 import { ABTestingProvider } from '@/lib/ab-testing-context';
+import { NotificationsProvider } from '@/lib/notifications-context';
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -86,12 +87,13 @@ export default function RootLayout() {
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SyncProvider>
-        <WebsitesProvider>
-          <CampaignsProvider>
-            <RecommendationsProvider>
-              <ABTestingProvider>
-                <IntegrationsProvider>
+      <NotificationsProvider>
+        <SyncProvider>
+          <WebsitesProvider>
+            <CampaignsProvider>
+              <RecommendationsProvider>
+                <ABTestingProvider>
+                  <IntegrationsProvider>
                   <trpc.Provider client={trpcClient} queryClient={queryClient}>
                     <QueryClientProvider client={queryClient}>
           {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
@@ -104,12 +106,13 @@ export default function RootLayout() {
           <StatusBar style="auto" />
                     </QueryClientProvider>
                   </trpc.Provider>
-                </IntegrationsProvider>
-              </ABTestingProvider>
-            </RecommendationsProvider>
-          </CampaignsProvider>
-        </WebsitesProvider>
-      </SyncProvider>
+                  </IntegrationsProvider>
+                </ABTestingProvider>
+              </RecommendationsProvider>
+            </CampaignsProvider>
+          </WebsitesProvider>
+        </SyncProvider>
+      </NotificationsProvider>
     </GestureHandlerRootView>
   );
 
