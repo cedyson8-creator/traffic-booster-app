@@ -131,6 +131,8 @@ export const emailDeliveryLogs = mysqlTable("email_delivery_logs", {
   status: mysqlEnum("status", ["sent", "failed", "bounced"]).notNull(),
   errorMessage: text("errorMessage"),
   sentAt: timestamp("sentAt").defaultNow().notNull(),
+  retryCount: int("retryCount").default(0).notNull(),
+  nextRetryAt: timestamp("nextRetryAt").defaultNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -147,5 +149,23 @@ export type IntegrationSyncLog = typeof integrationSyncLog.$inferSelect;
 export type InsertIntegrationSyncLog = typeof integrationSyncLog.$inferInsert;
 export type ScheduledReport = typeof scheduledReports.$inferSelect;
 export type InsertScheduledReport = typeof scheduledReports.$inferInsert;
+// Performance alerts table
+export const performanceAlerts = mysqlTable("performance_alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  scheduleId: int("scheduleId"),
+  alertType: mysqlEnum("alertType", ["low_success_rate", "high_bounce_rate", "delivery_failure"]).notNull(),
+  threshold: int("threshold").notNull(),
+  currentValue: int("currentValue").notNull(),
+  severity: mysqlEnum("severity", ["info", "warning", "critical"]).notNull(),
+  message: text("message").notNull(),
+  isResolved: boolean("isResolved").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+});
+
+// Export types
 export type EmailDeliveryLog = typeof emailDeliveryLogs.$inferSelect;
 export type InsertEmailDeliveryLog = typeof emailDeliveryLogs.$inferInsert;
+export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
+export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;

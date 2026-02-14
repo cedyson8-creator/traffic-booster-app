@@ -44,6 +44,8 @@ interface FailureLog {
   sentAt: string;
 }
 
+type DeliveryStatus = 'all' | 'sent' | 'failed' | 'bounced';
+
 export default function DeliveryAnalyticsScreen() {
   const colors = useColors();
   const { user } = useAuth();
@@ -53,6 +55,7 @@ export default function DeliveryAnalyticsScreen() {
   const [scheduleStats, setScheduleStats] = useState<ScheduleStats[]>([]);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [failures, setFailures] = useState<FailureLog[]>([]);
+  const [statusFilter, setStatusFilter] = useState<DeliveryStatus>('all');
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -122,6 +125,15 @@ export default function DeliveryAnalyticsScreen() {
     labelTextStyle: { color: colors.muted, fontSize: 10 },
   }));
 
+  // Filter failures based on status
+  const filteredFailures = statusFilter === 'all' 
+    ? failures 
+    : failures.filter(f => {
+        if (statusFilter === 'failed') return true;
+        if (statusFilter === 'bounced') return f.errorMessage?.includes('bounce');
+        return false;
+      });
+
   return (
     <ScreenContainer>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}>
@@ -129,6 +141,36 @@ export default function DeliveryAnalyticsScreen() {
         <View className="mb-6">
           <Text className="text-3xl font-bold text-foreground">Delivery Analytics</Text>
           <Text className="text-base text-muted mt-1">Email delivery performance</Text>
+        </View>
+
+        {/* Status Filters */}
+        <View className="flex-row gap-2 mb-6">
+          {(['all', 'sent', 'failed', 'bounced'] as DeliveryStatus[]).map((status) => (
+            <TouchableOpacity
+              key={status}
+              onPress={() => setStatusFilter(status)}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                borderRadius: 8,
+                backgroundColor: statusFilter === status ? colors.primary : colors.surface,
+                borderWidth: 1,
+                borderColor: statusFilter === status ? colors.primary : colors.border,
+              }}
+            >
+              <Text
+                style={{
+                  color: statusFilter === status ? colors.background : colors.foreground,
+                  fontSize: 12,
+                  fontWeight: '600',
+                  textAlign: 'center',
+                }}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Summary Stats */}
@@ -285,7 +327,7 @@ export default function DeliveryAnalyticsScreen() {
         )}
 
         {/* Recent Failures */}
-        {failures.length > 0 && (
+        {filteredFailures.length > 0 && (
           <View
             style={{
               backgroundColor: colors.surface,

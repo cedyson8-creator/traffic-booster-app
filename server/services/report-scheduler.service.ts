@@ -1,4 +1,6 @@
 import { EmailSenderService } from './email-sender.service';
+import { EmailRetryService } from './email-retry.service';
+import { PerformanceAlertsService } from './performance-alerts.service';
 
 /**
  * Report Scheduler Service
@@ -24,7 +26,15 @@ export class ReportSchedulerService {
     // Check for due reports every minute
     this.intervalId = setInterval(async () => {
       try {
+        // Send due reports
         await EmailSenderService.sendDueReports();
+        
+        // Process failed emails for retry
+        await EmailRetryService.processFailedEmails();
+        
+        // Check performance metrics and create alerts
+        // Note: In production, would iterate through all users
+        // For now, this is called per-user as needed
       } catch (error) {
         console.error('[ReportScheduler] Error in scheduled job:', error);
       }
@@ -53,8 +63,20 @@ export class ReportSchedulerService {
     try {
       console.log('[ReportScheduler] Running scheduled job now');
       await EmailSenderService.sendDueReports();
+      await EmailRetryService.processFailedEmails();
     } catch (error) {
       console.error('[ReportScheduler] Error running job:', error);
+    }
+  }
+
+  /**
+   * Check performance metrics for a user and create alerts
+   */
+  static async checkUserPerformance(userId: number): Promise<void> {
+    try {
+      await PerformanceAlertsService.checkPerformance(userId);
+    } catch (error) {
+      console.error('[ReportScheduler] Error checking performance:', error);
     }
   }
 
