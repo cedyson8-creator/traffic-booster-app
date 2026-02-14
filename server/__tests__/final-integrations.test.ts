@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EmailProviderService } from '../services/email-provider.service';
 import { SlackWebhookService, DiscordWebhookService, SocialWebhooksManager } from '../services/social-webhooks.service';
 
