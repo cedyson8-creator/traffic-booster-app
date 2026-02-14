@@ -264,6 +264,72 @@ export const paymentHistory = mysqlTable("payment_history", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+// Webhook Logs table for database persistence
+export const webhookLogs = mysqlTable("webhook_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  webhookId: varchar("webhookId", { length: 255 }).notNull(),
+  url: varchar("url", { length: 2048 }).notNull(),
+  eventType: varchar("eventType", { length: 255 }).notNull(),
+  attempt: int("attempt").default(1).notNull(),
+  statusCode: int("statusCode"),
+  response: text("response"),
+  error: text("error"),
+  nextRetryAt: timestamp("nextRetryAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Error Logs table for database persistence
+export const errorLogs = mysqlTable("error_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  errorId: varchar("errorId", { length: 255 }).notNull().unique(),
+  message: text("message").notNull(),
+  level: mysqlEnum("level", ["fatal", "error", "warning", "info", "debug"]).notNull(),
+  endpoint: varchar("endpoint", { length: 255 }),
+  statusCode: int("statusCode"),
+  stackTrace: text("stackTrace"),
+  context: json("context"),
+  tags: json("tags"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Alert Subscriptions table for email alerts
+export const alertSubscriptions = mysqlTable("alert_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  alertType: mysqlEnum("alertType", ["error_rate", "webhook_failure", "rate_limit_exceeded", "api_key_rotated"]).notNull(),
+  threshold: int("threshold"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Alert History table for tracking sent alerts
+export const alertHistory = mysqlTable("alert_history", {
+  id: int("id").autoincrement().primaryKey(),
+  subscriptionId: int("subscriptionId").notNull(),
+  userId: int("userId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  alertType: varchar("alertType", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  status: mysqlEnum("status", ["sent", "failed", "bounced"]).notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Export types
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = typeof webhookLogs.$inferInsert;
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = typeof errorLogs.$inferInsert;
+export type AlertSubscription = typeof alertSubscriptions.$inferSelect;
+export type InsertAlertSubscription = typeof alertSubscriptions.$inferInsert;
+export type AlertHistory = typeof alertHistory.$inferSelect;
+export type InsertAlertHistory = typeof alertHistory.$inferInsert;
+
 // Export types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
