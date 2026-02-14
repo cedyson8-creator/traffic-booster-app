@@ -202,4 +202,6 @@
 - [x] Add real data export endpoints (pdf-real, csv-real, json-real)
 - [x] Connect real data from Google Analytics and Meta integrations
 - [x] Implement complete database queries for production data
+- [x] Add real data toggle UI to ReportCustomizationModal
+- [x] Implement export handler with real data support
 - [ ] Publish app with custom report builder and real data

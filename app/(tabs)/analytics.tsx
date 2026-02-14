@@ -198,13 +198,44 @@ export default function AnalyticsScreen() {
       <ReportCustomizationModal
         visible={showReportCustomizer}
         onClose={() => setShowReportCustomizer(false)}
-        onExport={async (metrics, format) => {
+        userId={1}
+        websiteId={1}
+        onExport={async (metrics, format, useRealData = false) => {
           setIsExporting(true);
           try {
-            // TODO: Implement actual export with selected metrics
-            console.log('Exporting report with metrics:', metrics, 'format:', format);
-            // Call export API with selected metrics
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate export
+            if (useRealData) {
+              const endpoint = `/api/export/${format}-real`;
+              const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: 1,
+                  websiteId: 1,
+                  metrics,
+                  dateRange: {
+                    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    end: new Date().toISOString(),
+                  },
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to export real data');
+              }
+
+              const blob = await response.blob();
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `traffic-report-${new Date().toISOString().split('T')[0]}.${format}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } else {
+              console.log('Exporting mock report with metrics:', metrics, 'format:', format);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
           } catch (error) {
             console.error('Export failed:', error);
           } finally {

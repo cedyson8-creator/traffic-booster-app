@@ -7,8 +7,10 @@ import { ReportBuilder, ReportTemplate } from './report-builder';
 interface ReportCustomizationModalProps {
   visible: boolean;
   onClose: () => void;
-  onExport: (metrics: string[], format: 'pdf' | 'csv' | 'json') => Promise<void>;
+  onExport: (metrics: string[], format: 'pdf' | 'csv' | 'json', useRealData?: boolean) => Promise<void>;
   isLoading?: boolean;
+  userId?: number;
+  websiteId?: number;
 }
 
 export function ReportCustomizationModal({
@@ -16,11 +18,14 @@ export function ReportCustomizationModal({
   onClose,
   onExport,
   isLoading = false,
+  userId,
+  websiteId,
 }: ReportCustomizationModalProps) {
   const colors = useColors();
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'json'>('pdf');
   const [exporting, setExporting] = useState(false);
+  const [useRealData, setUseRealData] = useState(false);
 
   const handleExport = async () => {
     if (selectedMetrics.length === 0) {
@@ -28,9 +33,14 @@ export function ReportCustomizationModal({
       return;
     }
 
+    if (useRealData && (!userId || !websiteId)) {
+      alert('Real data export requires website information');
+      return;
+    }
+
     setExporting(true);
     try {
-      await onExport(selectedMetrics, exportFormat);
+      await onExport(selectedMetrics, exportFormat, useRealData);
       onClose();
     } catch (error) {
       console.error('Export failed:', error);
@@ -67,6 +77,73 @@ export function ReportCustomizationModal({
           defaultMetrics={selectedMetrics}
           onMetricsSelected={setSelectedMetrics}
         />
+
+        {/* Data Source Selection */}
+        {userId && websiteId && (
+          <View
+            style={{ backgroundColor: colors.surface, borderTopColor: colors.border }}
+            className="border-t p-4 gap-3"
+          >
+            <Text className="font-semibold text-foreground">Data Source</Text>
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => setUseRealData(false)}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: !useRealData ? colors.primary : colors.background,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+                className="flex-1 p-3 rounded-lg border border-border items-center"
+              >
+                <Text
+                  className={cn(
+                    'font-semibold text-sm',
+                    !useRealData ? 'text-background' : 'text-foreground'
+                  )}
+                >
+                  📊 Mock Data
+                </Text>
+                <Text
+                  className={cn(
+                    'text-xs mt-1',
+                    !useRealData ? 'text-background/70' : 'text-muted'
+                  )}
+                >
+                  Quick preview
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => setUseRealData(true)}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: useRealData ? colors.primary : colors.background,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+                className="flex-1 p-3 rounded-lg border border-border items-center"
+              >
+                <Text
+                  className={cn(
+                    'font-semibold text-sm',
+                    useRealData ? 'text-background' : 'text-foreground'
+                  )}
+                >
+                  🔗 Real Data
+                </Text>
+                <Text
+                  className={cn(
+                    'text-xs mt-1',
+                    useRealData ? 'text-background/70' : 'text-muted'
+                  )}
+                >
+                  Production
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         {/* Export Format Selection */}
         <View
