@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { handleWebhookEvent } from '@/server/services/webhook-handler.service';
 import { webhookConfigService } from '@/server/services/webhook-config.service';
 import { smartRetrySchedulerService } from '@/server/services/smart-retry-scheduler.service';
+import { StripeWebhookService } from '@/server/services/stripe-webhook.service';
 
 const router = express.Router();
 
@@ -277,6 +278,38 @@ router.get('/events/:logId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('[Webhooks] Error fetching events:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /api/webhooks/stripe
+ * Receive webhook events from Stripe with signature verification
+ */
+router.post('/stripe', async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers['stripe-signature'] as string;
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!signature || !secret) {
+      console.warn('[Webhooks] Stripe signature or secret missing');
+      return res.status(400).json({ error: 'Missing signature or secret' });
+    }
+
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const result = await StripeWebhookService.handleWebhookEvent(
+      rawBody,
+      signature,
+      secret
+    );
+
+    if (result.success) {
+      res.json({ success: true, message: result.message });
+    } else {
+      res.status(400).json({ success: false, error: result.message });
+    }
+  } catch (error) {
+    console.error('[Webhooks] Error processing Stripe webhook:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

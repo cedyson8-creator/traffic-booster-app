@@ -81,7 +81,9 @@ export default function CheckoutScreen() {
         },
         body: JSON.stringify({
           planId: plan.id,
-          paymentMethodId: "pm_test", // In production, use Stripe Elements
+          paymentMethodId: "pm_test",
+          cardToken: cardNumber,
+          billingCycle: billingCycle,
         }),
       });
 
