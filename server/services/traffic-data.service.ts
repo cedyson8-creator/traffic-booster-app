@@ -1,5 +1,7 @@
 import * as db from "../db";
 import { TrafficReport } from "./export.service";
+import { and, gte, lte, eq, sum, sql } from "drizzle-orm";
+import { trafficMetrics, campaigns, websites } from "../../drizzle/schema";
 
 /**
  * Service for fetching real traffic data from integrated platforms
@@ -16,8 +18,8 @@ export class TrafficDataService {
   ): Promise<TrafficReport | null> {
     try {
       // Get website info from user's websites
-      const websites = await db.getUserWebsites(userId);
-      const website = websites.find((w: any) => w.id === websiteId);
+      const websitesList = await db.getUserWebsites(userId);
+      const website = websitesList.find((w: any) => w.id === websiteId);
       if (!website) {
         console.error(`Website ${websiteId} not found for user ${userId}`);
         return null;
@@ -33,7 +35,7 @@ export class TrafficDataService {
       const trafficSources = await this.fetchTrafficSources(userId, websiteId, dateRange);
 
       // Fetch campaign data
-      const campaigns = await this.fetchCampaignData(userId, websiteId, dateRange);
+      const campaignData = await this.fetchCampaignData(userId, websiteId, dateRange);
 
       // Fetch daily data for charts
       const dailyData = await this.fetchDailyData(userId, websiteId, dateRange);
@@ -55,7 +57,7 @@ export class TrafficDataService {
         },
         trafficSources,
         dailyData,
-        campaigns,
+        campaigns: campaignData,
       };
 
       return report;
@@ -80,36 +82,50 @@ export class TrafficDataService {
     conversionRate: number;
   } | null> {
     try {
-      // Query database for traffic metrics within date range
-      // This would be implemented based on your database schema
-      // For now, return null to indicate data not available
-      // In production, this would query the trafficMetrics table
-
-      // Placeholder: Return null if database is not available
       const dbInstance = await db.getDb();
       if (!dbInstance) {
+        console.warn("[TrafficDataService] Database not available");
         return null;
       }
 
-      // TODO: Implement actual database query
-      // const metrics = await dbInstance
-      //   .select()
-      //   .from(trafficMetrics)
-      //   .where(
-      //     and(
-      //       eq(trafficMetrics.userId, userId),
-      //       eq(trafficMetrics.websiteId, websiteId),
-      //       gte(trafficMetrics.date, dateRange.start),
-      //       lte(trafficMetrics.date, dateRange.end)
-      //     )
-      //   );
+      // Query database for traffic metrics within date range
+      const metrics = await dbInstance
+        .select({
+          totalVisits: sum(trafficMetrics.visits).as("totalVisits"),
+          uniqueVisitors: sum(trafficMetrics.uniqueVisitors).as("uniqueVisitors"),
+          avgSessionDuration: sql<number>`AVG(${trafficMetrics.avgSessionDuration})`.as(
+            "avgSessionDuration"
+          ),
+          bounceRate: sql<number>`AVG(${trafficMetrics.bounceRate})`.as("bounceRate"),
+        })
+        .from(trafficMetrics)
+        .where(
+          and(
+            eq(trafficMetrics.userId, userId),
+            eq(trafficMetrics.websiteId, websiteId),
+            gte(trafficMetrics.date, dateRange.start),
+            lte(trafficMetrics.date, dateRange.end)
+          )
+        );
+
+      if (!metrics || metrics.length === 0) {
+        console.warn("[TrafficDataService] No traffic metrics found");
+        return null;
+      }
+
+      const metric = metrics[0];
+      const totalVisits = metric.totalVisits ? Number(metric.totalVisits) : 0;
+      const uniqueVisitors = metric.uniqueVisitors ? Number(metric.uniqueVisitors) : 0;
+
+      // Calculate conversion rate (assuming 3-5% industry standard)
+      const conversionRate = totalVisits > 0 ? (uniqueVisitors / totalVisits) * 100 : 0;
 
       return {
-        totalVisits: 45230,
-        uniqueVisitors: 28900,
-        avgSessionDuration: 222,
-        bounceRate: 42.3,
-        conversionRate: 3.8,
+        totalVisits,
+        uniqueVisitors,
+        avgSessionDuration: metric.avgSessionDuration ? Number(metric.avgSessionDuration) : 0,
+        bounceRate: metric.bounceRate ? Number(metric.bounceRate) : 0,
+        conversionRate: Math.round(conversionRate * 10) / 10,
       };
     } catch (error) {
       console.error("[TrafficDataService] Failed to fetch metrics:", error);
@@ -126,14 +142,41 @@ export class TrafficDataService {
     dateRange: { start: Date; end: Date }
   ): Promise<Array<{ source: string; visits: number; percentage: number }>> {
     try {
-      // In production, this would aggregate data by traffic source from database
-      // For now, return mock data structure
-      return [
-        { source: "Organic", visits: 18450, percentage: 40.8 },
-        { source: "Direct", visits: 12340, percentage: 27.3 },
-        { source: "Referral", visits: 8920, percentage: 19.7 },
-        { source: "Social", visits: 5520, percentage: 12.2 },
-      ];
+      const dbInstance = await db.getDb();
+      if (!dbInstance) {
+        return [];
+      }
+
+      // Query traffic metrics grouped by source
+      const sourceData = await dbInstance
+        .select({
+          source: trafficMetrics.source,
+          visits: sum(trafficMetrics.visits).as("visits"),
+        })
+        .from(trafficMetrics)
+        .where(
+          and(
+            eq(trafficMetrics.userId, userId),
+            eq(trafficMetrics.websiteId, websiteId),
+            gte(trafficMetrics.date, dateRange.start),
+            lte(trafficMetrics.date, dateRange.end)
+          )
+        )
+        .groupBy(trafficMetrics.source);
+
+      if (!sourceData || sourceData.length === 0) {
+        return [];
+      }
+
+      // Calculate total visits
+      const totalVisits = sourceData.reduce((sum, item) => sum + (Number(item.visits) || 0), 0);
+
+      // Map to report format with percentages
+      return sourceData.map((item) => ({
+        source: item.source || "direct",
+        visits: Number(item.visits) || 0,
+        percentage: totalVisits > 0 ? Math.round((Number(item.visits) / totalVisits) * 1000) / 10 : 0,
+      }));
     } catch (error) {
       console.error("[TrafficDataService] Failed to fetch traffic sources:", error);
       return [];
@@ -150,28 +193,30 @@ export class TrafficDataService {
   ): Promise<Array<{ name: string; visits: number; conversions: number; roi: number }>> {
     try {
       // Query campaigns table for active campaigns in date range
-      const campaigns = await db.getWebsiteCampaigns(websiteId);
+      const campaignList = await db.getWebsiteCampaigns(websiteId);
+
+      if (!campaignList || campaignList.length === 0) {
+        return [];
+      }
 
       // Filter campaigns within date range and map to report format
-      const campaignData = campaigns
+      const campaignData = campaignList
         .filter((c: any) => {
           const startDate = new Date(c.startDate || 0);
-          return startDate >= dateRange.start && startDate <= dateRange.end;
+          const endDate = new Date(c.endDate || Date.now());
+          return startDate <= dateRange.end && endDate >= dateRange.start;
         })
-        .map((c: any) => ({
-          name: c.name || "Unknown Campaign",
-          visits: c.estimatedReach || 0,
-          conversions: c.conversions || 0,
-          roi: c.roi || 0,
-        }));
+        .map((c: any) => {
+          const conversions = Math.round((c.currentVisits || 0) * 0.03); // Assume 3% conversion rate
+          const roi = c.budget > 0 ? Math.round((conversions * 50 - c.budget) / c.budget * 100) : 0; // Assume $50 per conversion
 
-      // If no real campaigns, return mock data
-      if (campaignData.length === 0) {
-        return [
-          { name: "Spring Sale", visits: 5200, conversions: 156, roi: 245 },
-          { name: "Email Campaign", visits: 3100, conversions: 93, roi: 180 },
-        ];
-      }
+          return {
+            name: c.name || "Unknown Campaign",
+            visits: c.currentVisits || 0,
+            conversions,
+            roi,
+          };
+        });
 
       return campaignData;
     } catch (error) {
@@ -189,48 +234,39 @@ export class TrafficDataService {
     dateRange: { start: Date; end: Date }
   ): Promise<Array<{ date: string; visits: number; uniqueVisitors: number }>> {
     try {
-      // Query traffic metrics grouped by date
       const dbInstance = await db.getDb();
       if (!dbInstance) {
         return [];
       }
 
-      // TODO: Implement actual database query
-      // const dailyMetrics = await dbInstance
-      //   .select({
-      //     date: trafficMetrics.date,
-      //     visits: sql`SUM(${trafficMetrics.visits})`,
-      //     uniqueVisitors: sql`SUM(${trafficMetrics.uniqueVisitors})`,
-      //   })
-      //   .from(trafficMetrics)
-      //   .where(
-      //     and(
-      //       eq(trafficMetrics.userId, userId),
-      //       eq(trafficMetrics.websiteId, websiteId),
-      //       gte(trafficMetrics.date, dateRange.start),
-      //       lte(trafficMetrics.date, dateRange.end)
-      //     )
-      //   )
-      //   .groupBy(trafficMetrics.date);
+      // Query traffic metrics grouped by date
+      const dailyMetrics = await dbInstance
+        .select({
+          date: trafficMetrics.date,
+          visits: sum(trafficMetrics.visits).as("visits"),
+          uniqueVisitors: sum(trafficMetrics.uniqueVisitors).as("uniqueVisitors"),
+        })
+        .from(trafficMetrics)
+        .where(
+          and(
+            eq(trafficMetrics.userId, userId),
+            eq(trafficMetrics.websiteId, websiteId),
+            gte(trafficMetrics.date, dateRange.start),
+            lte(trafficMetrics.date, dateRange.end)
+          )
+        )
+        .groupBy(trafficMetrics.date);
 
-      // Return mock data for now
-      const days = Math.ceil(
-        (dateRange.end.getTime() - dateRange.start.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const dailyData = [];
-
-      for (let i = 0; i < days; i++) {
-        const date = new Date(dateRange.start);
-        date.setDate(date.getDate() + i);
-
-        dailyData.push({
-          date: date.toISOString().split("T")[0],
-          visits: Math.floor(Math.random() * 2000) + 1000,
-          uniqueVisitors: Math.floor(Math.random() * 1500) + 500,
-        });
+      if (!dailyMetrics || dailyMetrics.length === 0) {
+        return [];
       }
 
-      return dailyData;
+      // Map to report format
+      return dailyMetrics.map((item) => ({
+        date: new Date(item.date).toISOString().split("T")[0],
+        visits: Number(item.visits) || 0,
+        uniqueVisitors: Number(item.uniqueVisitors) || 0,
+      }));
     } catch (error) {
       console.error("[TrafficDataService] Failed to fetch daily data:", error);
       return [];
@@ -248,19 +284,17 @@ export class TrafficDataService {
       }
 
       // Check if there are any traffic metrics for this website
-      // TODO: Implement actual database query
-      // const metrics = await dbInstance
-      //   .select({ count: sql`COUNT(*)` })
-      //   .from(trafficMetrics)
-      //   .where(
-      //     and(
-      //       eq(trafficMetrics.userId, userId),
-      //       eq(trafficMetrics.websiteId, websiteId)
-      //     )
-      //   );
+      const metricsCount = await dbInstance
+        .select({ count: sql<number>`COUNT(*)`.as("count") })
+        .from(trafficMetrics)
+        .where(
+          and(
+            eq(trafficMetrics.userId, userId),
+            eq(trafficMetrics.websiteId, websiteId)
+          )
+        );
 
-      // return metrics.length > 0 && metrics[0].count > 0;
-      return false; // Return false for now since DB queries not fully implemented
+      return metricsCount.length > 0 && Number(metricsCount[0].count) > 0;
     } catch (error) {
       console.error("[TrafficDataService] Failed to check for real data:", error);
       return false;
@@ -281,26 +315,25 @@ export class TrafficDataService {
       }
 
       // Query for min and max dates in traffic metrics
-      // TODO: Implement actual database query
-      // const result = await dbInstance
-      //   .select({
-      //     minDate: sql`MIN(${trafficMetrics.date})`,
-      //     maxDate: sql`MAX(${trafficMetrics.date})`,
-      //   })
-      //   .from(trafficMetrics)
-      //   .where(
-      //     and(
-      //       eq(trafficMetrics.userId, userId),
-      //       eq(trafficMetrics.websiteId, websiteId)
-      //     )
-      //   );
+      const result = await dbInstance
+        .select({
+          minDate: sql<string>`MIN(${trafficMetrics.date})`.as("minDate"),
+          maxDate: sql<string>`MAX(${trafficMetrics.date})`.as("maxDate"),
+        })
+        .from(trafficMetrics)
+        .where(
+          and(
+            eq(trafficMetrics.userId, userId),
+            eq(trafficMetrics.websiteId, websiteId)
+          )
+        );
 
-      // if (result.length > 0 && result[0].minDate && result[0].maxDate) {
-      //   return {
-      //     start: new Date(result[0].minDate),
-      //     end: new Date(result[0].maxDate),
-      //   };
-      // }
+      if (result.length > 0 && result[0].minDate && result[0].maxDate) {
+        return {
+          start: new Date(result[0].minDate),
+          end: new Date(result[0].maxDate),
+        };
+      }
 
       return null;
     } catch (error) {
