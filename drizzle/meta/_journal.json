@@ -43,6 +43,13 @@
       "when": 1771039451842,
       "tag": "0005_rainy_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1771042194923,
+      "tag": "0006_cool_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

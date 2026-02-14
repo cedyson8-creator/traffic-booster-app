@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import exportRoutes from "../routes/export.routes";
 import emailSchedulerRoutes from "../routes/email-scheduler.routes";
 import webhooksRoutes from "../routes/webhooks.routes";
+import paymentRoutes from "../routes/payments.routes";
 import { ReportSchedulerService } from "../services/report-scheduler.service";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -68,6 +69,9 @@ async function startServer() {
 
   // Webhook routes
   app.use("/api/webhooks", webhooksRoutes);
+
+  // Payment routes
+  app.use("/api/payments", paymentRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });

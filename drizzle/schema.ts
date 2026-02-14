@@ -182,3 +182,96 @@ export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
 export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 export type InsertWebhookEvent = typeof webhookEvents.$inferInsert;
+
+// Subscription Plans table
+export const subscriptionPlans = mysqlTable("subscription_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(), // Free, Pro, Enterprise
+  stripePriceId: varchar("stripePriceId", { length: 255 }).unique(),
+  monthlyPrice: int("monthlyPrice").notNull(), // in cents
+  yearlyPrice: int("yearlyPrice"),
+  description: text("description"),
+  features: json("features").notNull(), // Array of feature names
+  maxWebsites: int("maxWebsites").notNull(),
+  maxSchedules: int("maxSchedules").notNull(),
+  maxEmailsPerMonth: int("maxEmailsPerMonth").notNull(),
+  maxApiCallsPerDay: int("maxApiCallsPerDay").notNull(),
+  priority: int("priority").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// User Subscriptions table
+export const userSubscriptions = mysqlTable("user_subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  planId: int("planId").notNull(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }).unique(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }).unique(),
+  status: mysqlEnum("status", ["active", "canceled", "past_due", "trialing"]).default("active").notNull(),
+  currentPeriodStart: timestamp("currentPeriodStart").notNull(),
+  currentPeriodEnd: timestamp("currentPeriodEnd").notNull(),
+  canceledAt: timestamp("canceledAt"),
+  cancelAtPeriodEnd: boolean("cancelAtPeriodEnd").default(false).notNull(),
+  trialEndsAt: timestamp("trialEndsAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Usage Tracking table
+export const usageTracking = mysqlTable("usage_tracking", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  month: varchar("month", { length: 7 }).notNull(), // YYYY-MM format
+  emailsSent: int("emailsSent").default(0).notNull(),
+  apiCalls: int("apiCalls").default(0).notNull(),
+  schedulesCreated: int("schedulesCreated").default(0).notNull(),
+  reportsGenerated: int("reportsGenerated").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Invoices table
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  subscriptionId: int("subscriptionId").notNull(),
+  stripeInvoiceId: varchar("stripeInvoiceId", { length: 255 }).unique(),
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["draft", "open", "paid", "void", "uncollectible"]).notNull(),
+  paidAt: timestamp("paidAt"),
+  dueDate: timestamp("dueDate"),
+  invoiceUrl: text("invoiceUrl"),
+  pdfUrl: text("pdfUrl"),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Payment History table
+export const paymentHistory = mysqlTable("payment_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }).unique(),
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["succeeded", "processing", "requires_payment_method", "requires_confirmation", "requires_action", "requires_capture", "canceled"]).notNull(),
+  paymentMethod: varchar("paymentMethod", { length: 255 }),
+  description: text("description"),
+  receiptUrl: text("receiptUrl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Export types
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+export type UsageTracking = typeof usageTracking.$inferSelect;
+export type InsertUsageTracking = typeof usageTracking.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+export type PaymentHistory = typeof paymentHistory.$inferSelect;
+export type InsertPaymentHistory = typeof paymentHistory.$inferInsert;

@@ -275,3 +275,39 @@
 - [x] Integrate timeline into Delivery Analytics
 - [x] Test bounce management and webhook features
 - [ ] Publish app with custom report builder and real data
+
+## Payment & Monetization System
+- [ ] Set up Stripe integration and API keys
+- [ ] Create subscription plan configuration (Free, Pro, Enterprise)
+- [ ] Create payment processing service with Stripe SDK
+- [ ] Implement payment webhook handling for Stripe events
+- [ ] Create subscription management database schema
+- [ ] Build feature gating system based on subscription tier
+- [ ] Implement usage tracking for API calls and email sends
+- [ ] Create billing enforcement service (rate limiting by tier)
+- [ ] Build invoice generation service
+- [ ] Implement invoice email delivery
+- [ ] Create subscription management UI screen
+- [ ] Add upgrade/downgrade/cancel functionality
+- [ ] Implement billing history and invoice viewing
+- [ ] Test payment workflows end-to-end
+- [ ] Publish app with payment system enabled
+
+## Payment & Monetization System (In Progress)
+- [x] Set up Stripe integration and API keys (service created)
+- [x] Create subscription plan configuration (Free, Pro, Enterprise)
+- [x] Create payment processing service with Stripe SDK
+- [x] Add database schema for subscriptions, usage tracking, and invoices
+- [x] Implement payment webhook handling for Stripe events
+- [x] Create subscription management database schema
+- [x] Build feature gating system based on subscription tier
+- [x] Implement usage tracking for API calls and email sends
+- [x] Create billing enforcement service (rate limiting by tier)
+- [x] Build invoice generation service
+- [x] Create payment routes and API endpoints
+- [x] Register payment routes in server
+- [ ] Create subscription management UI screen
+- [ ] Add upgrade/downgrade/cancel functionality
+- [ ] Implement billing history and invoice viewing
+- [ ] Test payment workflows end-to-end
+- [ ] Publish app with payment system enabled
