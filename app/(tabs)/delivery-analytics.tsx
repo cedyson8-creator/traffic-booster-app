@@ -59,6 +59,7 @@ export default function DeliveryAnalyticsScreen() {
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus>('all');
   const [showAlerts, setShowAlerts] = useState(false);
   const [resendingId, setResendingId] = useState<number | null>(null);
+  const [bulkResending, setBulkResending] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -136,13 +137,32 @@ export default function DeliveryAnalyticsScreen() {
         method: 'POST',
       });
       if (response.ok) {
-        // Remove from failures list
         setFailures(failures.filter(f => f.id !== logId));
       }
     } catch (error) {
       console.error('Error resending email:', error);
     } finally {
       setResendingId(null);
+    }
+  };
+
+  // Handle bulk resend all failed emails
+  const handleBulkResend = async () => {
+    setBulkResending(true);
+    try {
+      const response = await fetch(`/api/delivery-analytics/resend-all?userId=${user?.id}`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.count > 0) {
+          setFailures([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error bulk resending emails:', error);
+    } finally {
+      setBulkResending(false);
     }
   };
 
@@ -362,6 +382,25 @@ export default function DeliveryAnalyticsScreen() {
           </View>
         )}
 
+        {/* Bulk Resend Button */}
+        {failures.length > 0 && (
+          <TouchableOpacity
+            onPress={handleBulkResend}
+            disabled={bulkResending}
+            style={{
+              backgroundColor: colors.primary,
+              borderRadius: 8,
+              paddingVertical: 12,
+              marginBottom: 16,
+              opacity: bulkResending ? 0.6 : 1,
+            }}
+          >
+            <Text className="text-center font-semibold text-background">
+              {bulkResending ? '⏳ Resending All...' : `🔄 Resend All Failed (${failures.length})`}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Recent Failures */}
         {filteredFailures.length > 0 && (
           <View
@@ -416,6 +455,35 @@ export default function DeliveryAnalyticsScreen() {
                 </View>
               ))}
             </View>
+          </View>
+        )}
+
+        {/* Bounced Emails */}
+        {summary && summary.bounced > 0 && (
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Text className="text-base font-semibold text-foreground mb-4">Bounced Emails ({summary.bounced})</Text>
+            <Text className="text-sm text-muted mb-4">These addresses are invalid and should be removed from future sends.</Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.error + '20',
+                borderRadius: 8,
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+              }}
+            >
+              <Text style={{ color: colors.error, fontSize: 13, fontWeight: '600' }}>
+                📋 View & Manage Bounced Addresses
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 

@@ -276,4 +276,58 @@ router.post('/resend/:logId', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/delivery-analytics/resend-all
+ * Manually resend all failed emails
+ */
+router.post('/resend-all', async (req, res) => {
+  try {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId required' });
+    }
+
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+
+    // Get all failed emails for user
+    const failedEmails = await db
+      .select({ id: emailDeliveryLogs.id })
+      .from(emailDeliveryLogs)
+      .where(
+        and(
+          eq(emailDeliveryLogs.userId, parseInt(userId)),
+          eq(emailDeliveryLogs.status, 'failed')
+        )
+      );
+
+    if (failedEmails.length === 0) {
+      return res.json({ success: true, message: 'No failed emails to resend', count: 0 });
+    }
+
+    // Reset all failed emails for retry
+    await db
+      .update(emailDeliveryLogs)
+      .set({
+        status: 'failed',
+        retryCount: 0,
+        nextRetryAt: new Date(),
+        errorMessage: null,
+      })
+      .where(
+        and(
+          eq(emailDeliveryLogs.userId, parseInt(userId)),
+          eq(emailDeliveryLogs.status, 'failed')
+        )
+      );
+
+    res.json({ success: true, message: `Queued ${failedEmails.length} emails for resend`, count: failedEmails.length });
+  } catch (error) {
+    console.error('[DeliveryAnalytics] Error bulk resending emails:', error);
+    res.status(500).json({ error: 'Failed to bulk resend emails' });
+  }
+});
+
 export default router;

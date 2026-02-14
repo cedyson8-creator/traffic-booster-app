@@ -164,8 +164,21 @@ export const performanceAlerts = mysqlTable("performance_alerts", {
   resolvedAt: timestamp("resolvedAt"),
 });
 
+// Webhook events table for tracking delivery events
+export const webhookEvents = mysqlTable("webhook_events", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  logId: int("logId").notNull(),
+  eventType: mysqlEnum("eventType", ["delivered", "opened", "clicked", "bounced", "complained"]).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  metadata: json("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 // Export types
 export type EmailDeliveryLog = typeof emailDeliveryLogs.$inferSelect;
 export type InsertEmailDeliveryLog = typeof emailDeliveryLogs.$inferInsert;
 export type PerformanceAlert = typeof performanceAlerts.$inferSelect;
 export type InsertPerformanceAlert = typeof performanceAlerts.$inferInsert;
+export type WebhookEvent = typeof webhookEvents.$inferSelect;
+export type InsertWebhookEvent = typeof webhookEvents.$inferInsert;
