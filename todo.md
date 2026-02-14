@@ -214,4 +214,9 @@
 - [x] Create email scheduling service
 - [x] Build email scheduling UI component
 - [x] Integrate email scheduling into export modal
+- [x] Create scheduled_reports database table
+- [x] Create email scheduler API routes
+- [x] Register email scheduler routes in server
+- [x] Wire up frontend to backend email scheduling
+- [x] Test email scheduling integration
 - [ ] Publish app with custom report builder and real data

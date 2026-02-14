@@ -18,6 +18,9 @@ interface EmailSchedulerModalProps {
   onClose: () => void;
   onSchedule: (config: EmailScheduleConfig) => Promise<void>;
   isLoading?: boolean;
+  userId?: number;
+  websiteId?: number;
+  selectedMetrics?: string[];
 }
 
 const DAYS_OF_WEEK: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -36,6 +39,9 @@ export function EmailSchedulerModal({
   onClose,
   onSchedule,
   isLoading = false,
+  userId,
+  websiteId,
+  selectedMetrics = [],
 }: EmailSchedulerModalProps) {
   const colors = useColors();
   const [email, setEmail] = useState('');
@@ -50,8 +56,32 @@ export function EmailSchedulerModal({
       return;
     }
 
+    if (!userId || !websiteId) {
+      alert('User information is required');
+      return;
+    }
+
     setScheduling(true);
     try {
+      const response = await fetch('/api/email-scheduler/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          websiteId,
+          email,
+          metrics: selectedMetrics,
+          frequency,
+          dayOfWeek: frequency !== 'monthly' ? selectedDay : undefined,
+          dayOfMonth: frequency === 'monthly' ? selectedDayOfMonth : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to schedule report');
+      }
+
       const config: EmailScheduleConfig = {
         email,
         frequency,
@@ -60,15 +90,15 @@ export function EmailSchedulerModal({
       };
 
       await onSchedule(config);
-      // Reset form
       setEmail('');
       setFrequency('weekly');
       setSelectedDay('monday');
       setSelectedDayOfMonth(1);
+      alert('Report scheduled successfully!');
       onClose();
     } catch (error) {
       console.error('Failed to schedule report:', error);
-      alert('Failed to schedule report');
+      alert(error instanceof Error ? error.message : 'Failed to schedule report');
     } finally {
       setScheduling(false);
     }

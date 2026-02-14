@@ -15,6 +15,13 @@
       "when": 1771002629673,
       "tag": "0001_graceful_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1771032893933,
+      "tag": "0002_jazzy_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

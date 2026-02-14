@@ -105,6 +105,23 @@ export const integrationSyncLog = mysqlTable("integration_sync_log", {
   syncedAt: timestamp("syncedAt").defaultNow().notNull(),
 });
 
+// Scheduled Reports table
+export const scheduledReports = mysqlTable("scheduled_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  websiteId: int("websiteId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  metrics: json("metrics").notNull(), // Array of metric names
+  frequency: mysqlEnum("frequency", ["weekly", "biweekly", "monthly"]).notNull(),
+  dayOfWeek: mysqlEnum("dayOfWeek", ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]),
+  dayOfMonth: int("dayOfMonth"),
+  isActive: boolean("isActive").default(true).notNull(),
+  nextSendAt: timestamp("nextSendAt").notNull(),
+  lastSentAt: timestamp("lastSentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 // Export types
 export type Website = typeof websites.$inferSelect;
 export type InsertWebsite = typeof websites.$inferInsert;
@@ -116,3 +133,5 @@ export type TrafficMetric = typeof trafficMetrics.$inferSelect;
 export type InsertTrafficMetric = typeof trafficMetrics.$inferInsert;
 export type IntegrationSyncLog = typeof integrationSyncLog.$inferSelect;
 export type InsertIntegrationSyncLog = typeof integrationSyncLog.$inferInsert;
+export type ScheduledReport = typeof scheduledReports.$inferSelect;
+export type InsertScheduledReport = typeof scheduledReports.$inferInsert;

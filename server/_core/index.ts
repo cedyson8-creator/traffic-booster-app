@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import exportRoutes from "../routes/export.routes";
+import emailSchedulerRoutes from "../routes/email-scheduler.routes";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -59,6 +60,9 @@ async function startServer() {
 
   // Export routes
   app.use("/api/export", exportRoutes);
+
+  // Email scheduler routes
+  app.use("/api/email-scheduler", emailSchedulerRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
