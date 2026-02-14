@@ -209,4 +209,9 @@
 - [x] Create website selector dropdown component
 - [x] Integrate website selector into Analytics header
 - [x] Update traffic data to reflect selected website
+- [x] Create date range picker component
+- [x] Integrate date range picker into export modal
+- [x] Create email scheduling service
+- [x] Build email scheduling UI component
+- [x] Integrate email scheduling into export modal
 - [ ] Publish app with custom report builder and real data

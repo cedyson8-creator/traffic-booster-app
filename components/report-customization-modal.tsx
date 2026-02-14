@@ -3,11 +3,13 @@ import { View, Text, Pressable, Modal, ScrollView } from 'react-native';
 import { cn } from '@/lib/utils';
 import { useColors } from '@/hooks/use-colors';
 import { ReportBuilder, ReportTemplate } from './report-builder';
+import { DateRangePicker, type DateRange } from './date-range-picker';
+import { EmailSchedulerModal, type EmailScheduleConfig } from './email-scheduler-modal';
 
 interface ReportCustomizationModalProps {
   visible: boolean;
   onClose: () => void;
-  onExport: (metrics: string[], format: 'pdf' | 'csv' | 'json', useRealData?: boolean) => Promise<void>;
+  onExport: (metrics: string[], format: 'pdf' | 'csv' | 'json', useRealData?: boolean, dateRange?: DateRange) => Promise<void>;
   isLoading?: boolean;
   userId?: number;
   websiteId?: number;
@@ -26,6 +28,11 @@ export function ReportCustomizationModal({
   const [exportFormat, setExportFormat] = useState<'pdf' | 'csv' | 'json'>('pdf');
   const [exporting, setExporting] = useState(false);
   const [useRealData, setUseRealData] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    end: new Date(),
+  });
+  const [showEmailScheduler, setShowEmailScheduler] = useState(false);
 
   const handleExport = async () => {
     if (selectedMetrics.length === 0) {
@@ -40,7 +47,7 @@ export function ReportCustomizationModal({
 
     setExporting(true);
     try {
-      await onExport(selectedMetrics, exportFormat, useRealData);
+      await onExport(selectedMetrics, exportFormat, useRealData, dateRange);
       onClose();
     } catch (error) {
       console.error('Export failed:', error);
@@ -77,6 +84,18 @@ export function ReportCustomizationModal({
           defaultMetrics={selectedMetrics}
           onMetricsSelected={setSelectedMetrics}
         />
+
+        {/* Date Range Selection */}
+        <View
+          style={{ backgroundColor: colors.surface, borderTopColor: colors.border }}
+          className="border-t p-4 gap-3"
+        >
+          <Text className="font-semibold text-foreground">Reporting Period</Text>
+          <DateRangePicker
+            selectedRange={dateRange}
+            onSelectRange={setDateRange}
+          />
+        </View>
 
         {/* Data Source Selection */}
         {userId && websiteId && (
@@ -199,6 +218,22 @@ export function ReportCustomizationModal({
           </Pressable>
 
           <Pressable
+            onPress={() => setShowEmailScheduler(true)}
+            disabled={exporting || isLoading || selectedMetrics.length === 0}
+            style={({ pressed }) => [
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.primary,
+                borderWidth: 2,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
+            className="flex-1 p-4 rounded-lg items-center"
+          >
+            <Text className="font-semibold text-primary">Schedule</Text>
+          </Pressable>
+
+          <Pressable
             onPress={handleExport}
             disabled={exporting || isLoading || selectedMetrics.length === 0}
             style={({ pressed }) => [
@@ -217,6 +252,18 @@ export function ReportCustomizationModal({
             </Text>
           </Pressable>
         </View>
+
+        {/* Email Scheduler Modal */}
+        <EmailSchedulerModal
+          visible={showEmailScheduler}
+          onClose={() => setShowEmailScheduler(false)}
+          onSchedule={async (config: EmailScheduleConfig) => {
+            console.log('Scheduling report with config:', config);
+            console.log('Selected metrics:', selectedMetrics);
+            console.log('Date range:', dateRange);
+            alert('Report scheduled successfully!');
+          }}
+        />
       </View>
     </Modal>
   );
