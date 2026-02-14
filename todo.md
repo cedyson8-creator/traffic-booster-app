@@ -235,4 +235,8 @@
 - [x] Integrate edit modal into schedules screen
 - [x] Add Schedules tab to tab bar navigation
 - [x] Add Schedules icon mapping
+- [x] Create schedule preview component
+- [x] Integrate preview into edit schedule modal
+- [x] Add preview toggle and display logic
+- [x] Style preview with sample report data
 - [ ] Publish app with custom report builder and real data

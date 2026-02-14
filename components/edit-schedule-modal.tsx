@@ -2,6 +2,7 @@ import { Modal, View, Text, Pressable, ScrollView, TextInput, Alert } from 'reac
 import { useState, useEffect } from 'react';
 import { useColors } from '@/hooks/use-colors';
 import { cn } from '@/lib/utils';
+import { SchedulePreview } from './schedule-preview';
 
 interface ScheduledReport {
   id: number;
@@ -38,6 +39,7 @@ export function EditScheduleModal({
   const [dayOfWeek, setDayOfWeek] = useState('Monday');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [loading, setLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (schedule) {
@@ -243,6 +245,38 @@ export function EditScheduleModal({
                     }}
                   />
                 </View>
+              )}
+
+              {/* Preview Toggle Button */}
+              <Pressable
+                onPress={() => setShowPreview(!showPreview)}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              >
+                <View
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
+                    backgroundColor: colors.primary + '20',
+                    borderWidth: 1,
+                    borderColor: colors.primary,
+                  }}
+                >
+                  <Text className="text-center font-semibold text-primary">
+                    {showPreview ? 'Hide Preview' : 'Show Preview'}
+                  </Text>
+                </View>
+              </Pressable>
+
+              {/* Schedule Preview */}
+              {showPreview && (
+                <SchedulePreview
+                  email={email}
+                  frequency={frequency}
+                  dayOfWeek={dayOfWeek}
+                  dayOfMonth={parseInt(dayOfMonth)}
+                  metrics={schedule?.metrics || []}
+                />
               )}
 
               {/* Action Buttons */}
