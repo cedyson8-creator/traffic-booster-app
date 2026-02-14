@@ -25,6 +25,7 @@ const MAPPING = {
   "globe": "public",
   "chart.line.uptrend.xyaxis": "show-chart",
   "calendar": "calendar-today",
+  "envelope.fill": "mail",
 } as IconMapping;
 
 /**
