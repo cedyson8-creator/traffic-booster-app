@@ -6,9 +6,12 @@ import { StripePaymentService } from './stripe-payment.service';
  * Processes webhook events from Stripe
  */
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2026-01-28.clover',
-});
+// Initialize Stripe only if API key is provided
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2026-01-28.clover',
+    })
+  : null;
 
 export class StripeWebhookService {
   /**
@@ -20,6 +23,10 @@ export class StripeWebhookService {
     secret: string
   ): Promise<{ success: boolean; message: string }> {
     try {
+      if (!stripe) {
+        return { success: false, message: 'Stripe not configured' };
+      }
+
       // Verify webhook signature
       const event = stripe.webhooks.constructEvent(
         body,

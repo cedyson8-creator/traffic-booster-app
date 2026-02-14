@@ -14,11 +14,20 @@ import { eq, and } from 'drizzle-orm';
  * Handles subscription management, payments, and billing
  */
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2026-01-28.clover',
-});
+// Initialize Stripe only if API key is provided
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2026-01-28.clover',
+    })
+  : null;
 
 export class StripePaymentService {
+  /**
+   * Check if Stripe is configured
+   */
+  private static isConfigured(): boolean {
+    return !!stripe && !!process.env.STRIPE_SECRET_KEY;
+  }
   /**
    * Initialize default subscription plans in Stripe and database
    */
@@ -109,6 +118,11 @@ export class StripePaymentService {
    */
   static async createCustomer(userId: number, email: string, name?: string): Promise<string | null> {
     try {
+      if (!stripe) {
+        console.error('[StripePayment] Stripe not configured');
+        return null;
+      }
+
       const customer = await stripe.customers.create({
         email,
         name: name || `User ${userId}`,
@@ -158,6 +172,11 @@ export class StripePaymentService {
 
       if (paymentMethodId) {
         subscriptionParams.default_payment_method = paymentMethodId;
+      }
+
+      if (!stripe) {
+        console.error('[StripePayment] Stripe not configured');
+        return null;
       }
 
       const subscription = await stripe.subscriptions.create(subscriptionParams);
@@ -239,7 +258,7 @@ export class StripePaymentService {
       }
 
       // Update Stripe subscription
-      if (subscription.stripeSubscriptionId && newPlan[0].stripePriceId) {
+      if (subscription.stripeSubscriptionId && newPlan[0].stripePriceId && stripe) {
         const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
 
         await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
@@ -289,7 +308,7 @@ export class StripePaymentService {
       const sub = subscription[0];
 
       // Cancel Stripe subscription
-      if (sub.stripeSubscriptionId) {
+      if (sub.stripeSubscriptionId && stripe) {
         await stripe.subscriptions.update(sub.stripeSubscriptionId, {
           cancel_at_period_end: atPeriodEnd,
         });
@@ -453,6 +472,11 @@ export class StripePaymentService {
     try {
       const db = await getDb();
       if (!db) return false;
+
+      if (!stripe) {
+        console.error('[StripePayment] Stripe not configured');
+        return false;
+      }
 
       // Fetch invoice from Stripe
       const stripeInvoice = await stripe.invoices.retrieve(stripeInvoiceId);
