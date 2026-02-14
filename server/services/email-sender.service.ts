@@ -2,12 +2,18 @@ import { getDb, getUserWebsites } from '@/server/db';
 import { scheduledReports } from '@/drizzle/schema';
 import { eq, and, lte } from 'drizzle-orm';
 import { TrafficDataService } from './traffic-data.service';
+import { EmailConfigService } from './email-config.service';
 
 /**
  * Email Sender Service
  * Handles sending scheduled reports via email
+ * Supports SendGrid, Nodemailer, and mock implementations
  */
 export class EmailSenderService {
+  static {
+    // Initialize email service on class load
+    EmailConfigService.initialize();
+  }
   /**
    * Send all due scheduled reports
    * Called by cron job to check and send reports that are due
@@ -225,28 +231,105 @@ export class EmailSenderService {
   }
 
   /**
-   * Send email (mock implementation)
-   * Replace with actual email service (SendGrid, Nodemailer, etc.)
+   * Send email using configured email service
+   * Supports SendGrid, Nodemailer, or mock implementation
    */
   static async sendEmail(
     to: string,
     subject: string,
     htmlContent: string
   ): Promise<void> {
-    // Mock implementation - logs email instead of sending
-    console.log(`[EmailSender] Mock email sent to ${to}`);
-    console.log(`[EmailSender] Subject: ${subject}`);
-    console.log(`[EmailSender] Content length: ${htmlContent.length} chars`);
+    const { EmailConfigService } = await import('./email-config.service');
+    const emailService = EmailConfigService.getEmailService();
 
-    // TODO: Replace with actual email service
-    // Example with Nodemailer:
-    // const transporter = nodemailer.createTransport({...});
-    // await transporter.sendMail({ to, subject, html: htmlContent });
+    try {
+      switch (emailService) {
+        case 'sendgrid':
+          await this.sendViaSetGrid(to, subject, htmlContent);
+          break;
 
-    // Example with SendGrid:
-    // const sgMail = require('@sendgrid/mail');
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    // await sgMail.send({ to, subject, html: htmlContent });
+        case 'nodemailer':
+          await this.sendViaNodemailer(to, subject, htmlContent);
+          break;
+
+        default:
+          // Mock implementation
+          console.log(`[EmailSender] Mock email sent to ${to}`);
+          console.log(`[EmailSender] Subject: ${subject}`);
+          console.log(`[EmailSender] Content length: ${htmlContent.length} chars`);
+      }
+    } catch (error) {
+      console.error(`[EmailSender] Error sending email to ${to}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send email via SendGrid
+   */
+  private static async sendViaSetGrid(
+    to: string,
+    subject: string,
+    htmlContent: string
+  ): Promise<void> {
+    try {
+      const sgMail = require('@sendgrid/mail');
+      const { EmailConfigService } = await import('./email-config.service');
+      const apiKey = EmailConfigService.getSendGridApiKey();
+
+      if (!apiKey) {
+        throw new Error('SendGrid API key not configured');
+      }
+
+      sgMail.setApiKey(apiKey);
+
+      const msg = {
+        to,
+        from: process.env.SENDGRID_FROM_EMAIL || 'noreply@trafficbooster.com',
+        subject,
+        html: htmlContent,
+      };
+
+      await sgMail.send(msg);
+      console.log(`[EmailSender] Email sent via SendGrid to ${to}`);
+    } catch (error) {
+      console.error('[EmailSender] SendGrid error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send email via Nodemailer
+   */
+  private static async sendViaNodemailer(
+    to: string,
+    subject: string,
+    htmlContent: string
+  ): Promise<void> {
+    try {
+      const nodemailer = require('nodemailer');
+      const { EmailConfigService } = await import('./email-config.service');
+      const config = EmailConfigService.getNodemailerConfig();
+
+      if (!config) {
+        throw new Error('Nodemailer configuration not available');
+      }
+
+      const transporter = nodemailer.createTransport(config);
+
+      const mailOptions = {
+        from: config.from,
+        to,
+        subject,
+        html: htmlContent,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`[EmailSender] Email sent via Nodemailer to ${to}`);
+    } catch (error) {
+      console.error('[EmailSender] Nodemailer error:', error);
+      throw error;
+    }
   }
 
   /**
