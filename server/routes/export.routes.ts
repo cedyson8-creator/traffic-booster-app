@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { ExportService, TrafficReport } from '../services/export.service';
+import { ExportService, TrafficReport, ExportOptions } from '../services/export.service';
 
 const router = Router();
 
@@ -9,15 +9,15 @@ const router = Router();
  */
 router.post('/pdf', async (req: Request, res: Response) => {
   try {
-    const report: TrafficReport = req.body;
+    const { report, options } = req.body;
 
     // Validate report data
-    if (!report.websiteName || !report.metrics) {
+    if (!report || !report.websiteName || !report.metrics) {
       return res.status(400).json({ error: 'Invalid report data' });
     }
 
-    // Generate PDF
-    const pdfBuffer = await ExportService.generatePDFReport(report);
+    // Generate PDF with optional custom metrics
+    const pdfBuffer = await ExportService.generatePDFReport(report, options as ExportOptions);
 
     // Send as downloadable file
     res.setHeader('Content-Type', 'application/pdf');
@@ -33,20 +33,50 @@ router.post('/pdf', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/export/pdf-custom
+ * Generate PDF with custom metric selection
+ */
+router.post('/pdf-custom', async (req: Request, res: Response) => {
+  try {
+    const { report, metrics, format } = req.body;
+
+    // Validate report data
+    if (!report || !report.websiteName || !metrics) {
+      return res.status(400).json({ error: 'Invalid report data or metrics' });
+    }
+
+    // Generate PDF with selected metrics
+    const options: ExportOptions = { metrics };
+    const pdfBuffer = await ExportService.generatePDFReport(report, options);
+
+    // Send as downloadable file
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.pdf"`
+    );
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('PDF custom export error:', error);
+    res.status(500).json({ error: 'Failed to generate custom PDF report' });
+  }
+});
+
+/**
  * POST /api/export/csv
  * Generate and download a CSV traffic report
  */
 router.post('/csv', async (req: Request, res: Response) => {
   try {
-    const report: TrafficReport = req.body;
+    const { report, options } = req.body;
 
     // Validate report data
-    if (!report.websiteName || !report.metrics) {
+    if (!report || !report.websiteName || !report.metrics) {
       return res.status(400).json({ error: 'Invalid report data' });
     }
 
-    // Generate CSV
-    const csvContent = ExportService.generateCSVReport(report);
+    // Generate CSV with optional custom metrics
+    const csvContent = ExportService.generateCSVReport(report, options as ExportOptions);
 
     // Send as downloadable file
     res.setHeader('Content-Type', 'text/csv');
@@ -62,20 +92,50 @@ router.post('/csv', async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/export/csv-custom
+ * Generate CSV with custom metric selection
+ */
+router.post('/csv-custom', async (req: Request, res: Response) => {
+  try {
+    const { report, metrics } = req.body;
+
+    // Validate report data
+    if (!report || !report.websiteName || !metrics) {
+      return res.status(400).json({ error: 'Invalid report data or metrics' });
+    }
+
+    // Generate CSV with selected metrics
+    const options: ExportOptions = { metrics };
+    const csvContent = ExportService.generateCSVReport(report, options);
+
+    // Send as downloadable file
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.csv"`
+    );
+    res.send(csvContent);
+  } catch (error) {
+    console.error('CSV custom export error:', error);
+    res.status(500).json({ error: 'Failed to generate custom CSV report' });
+  }
+});
+
+/**
  * POST /api/export/json
  * Generate and download a JSON traffic report
  */
 router.post('/json', async (req: Request, res: Response) => {
   try {
-    const report: TrafficReport = req.body;
+    const { report, options } = req.body;
 
     // Validate report data
-    if (!report.websiteName || !report.metrics) {
+    if (!report || !report.websiteName || !report.metrics) {
       return res.status(400).json({ error: 'Invalid report data' });
     }
 
-    // Generate JSON
-    const jsonContent = ExportService.generateJSONReport(report);
+    // Generate JSON with optional custom metrics
+    const jsonContent = ExportService.generateJSONReport(report, options as ExportOptions);
 
     // Send as downloadable file
     res.setHeader('Content-Type', 'application/json');
@@ -87,6 +147,36 @@ router.post('/json', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('JSON export error:', error);
     res.status(500).json({ error: 'Failed to generate JSON report' });
+  }
+});
+
+/**
+ * POST /api/export/json-custom
+ * Generate JSON with custom metric selection
+ */
+router.post('/json-custom', async (req: Request, res: Response) => {
+  try {
+    const { report, metrics } = req.body;
+
+    // Validate report data
+    if (!report || !report.websiteName || !metrics) {
+      return res.status(400).json({ error: 'Invalid report data or metrics' });
+    }
+
+    // Generate JSON with selected metrics
+    const options: ExportOptions = { metrics };
+    const jsonContent = ExportService.generateJSONReport(report, options);
+
+    // Send as downloadable file
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.json"`
+    );
+    res.send(jsonContent);
+  } catch (error) {
+    console.error('JSON custom export error:', error);
+    res.status(500).json({ error: 'Failed to generate custom JSON report' });
   }
 });
 

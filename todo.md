@@ -195,4 +195,7 @@
 - [x] Integrate report builder with export service
 - [x] Add report template presets and saving
 - [x] Test custom report builder end-to-end
+- [x] Integrate custom report builder into Analytics tab UI
+- [x] Add Customize Report button to Analytics screen
+- [x] Connect custom metrics to export API endpoints
 - [ ] Publish app with custom report builder
