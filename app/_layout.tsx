@@ -19,6 +19,7 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { WebsitesProvider } from "@/lib/websites-context";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { CampaignsProvider } from "@/lib/campaigns-context";
 import { IntegrationsProvider } from '@/lib/integrations-context';
 import { SyncProvider } from '@/lib/sync-context';
@@ -89,8 +90,9 @@ export default function RootLayout() {
   }, [initialInsets, initialFrame]);
 
   const content = (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NotificationsProvider>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NotificationsProvider>
         <PredictiveAnalyticsProvider>
         <SegmentationProvider>
         <ReportingProvider>
@@ -121,8 +123,9 @@ export default function RootLayout() {
         </ReportingProvider>
         </SegmentationProvider>
         </PredictiveAnalyticsProvider>
-      </NotificationsProvider>
-    </GestureHandlerRootView>
+        </NotificationsProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 
   const shouldOverrideSafeArea = Platform.OS === "web";

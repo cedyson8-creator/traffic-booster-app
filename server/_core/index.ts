@@ -12,6 +12,7 @@ import webhooksRoutes from "../routes/webhooks.routes";
 import paymentRoutes from "../routes/payments.routes";
 import socialMediaRoutes from "../routes/social-media.routes";
 import { ReportSchedulerService } from "../services/report-scheduler.service";
+import { globalRateLimiter, endpointRateLimiter, paymentRateLimiter, exportRateLimiter, emailRateLimiter } from "../middleware/rate-limit.middleware";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -60,19 +61,23 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+  // Apply global rate limiting
+  app.use(globalRateLimiter);
+  app.use(endpointRateLimiter);
+
   registerOAuthRoutes(app);
 
-  // Export routes
-  app.use("/api/export", exportRoutes);
+  // Export routes with rate limiting
+  app.use("/api/export", exportRateLimiter, exportRoutes);
 
-  // Email scheduler routes
-  app.use("/api/email-scheduler", emailSchedulerRoutes);
+  // Email scheduler routes with rate limiting
+  app.use("/api/email-scheduler", emailRateLimiter, emailSchedulerRoutes);
 
   // Webhook routes
   app.use("/api/webhooks", webhooksRoutes);
 
-  // Payment routes
-  app.use("/api/payments", paymentRoutes);
+  // Payment routes with rate limiting
+  app.use("/api/payments", paymentRateLimiter, paymentRoutes);
 
   // Social media routes
   app.use("/api/social-media", socialMediaRoutes);
