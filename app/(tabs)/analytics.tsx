@@ -7,15 +7,23 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { generateTrafficStats, mockTrafficSources, mockGeographicData, mockTopPages } from "@/lib/mock-data";
 import { ReportCustomizationModal } from "@/components/report-customization-modal";
+import { useAuth } from "@/hooks/use-auth";
+import { useWebsites } from "@/lib/websites-context";
 
 type TimeRange = '7d' | '30d' | 'all';
 
 export default function AnalyticsScreen() {
   const router = useRouter();
   const colors = useColors();
+  const { user } = useAuth();
+  const { websites } = useWebsites();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [showReportCustomizer, setShowReportCustomizer] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(websites[0]?.id ?? null);
+
+  const selectedWebsite = websites.find(w => w.id === selectedWebsiteId);
+  const userId = user?.id ?? null;
 
   const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const trafficData = generateTrafficStats(days);
@@ -198,19 +206,19 @@ export default function AnalyticsScreen() {
       <ReportCustomizationModal
         visible={showReportCustomizer}
         onClose={() => setShowReportCustomizer(false)}
-        userId={1}
-        websiteId={1}
+        userId={userId ?? undefined}
+        websiteId={selectedWebsite?.id ? parseInt(selectedWebsite.id) : undefined}
         onExport={async (metrics, format, useRealData = false) => {
           setIsExporting(true);
           try {
-            if (useRealData) {
+            if (useRealData && userId && selectedWebsite?.id) {
               const endpoint = `/api/export/${format}-real`;
               const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  userId: 1,
-                  websiteId: 1,
+                  userId,
+                  websiteId: parseInt(selectedWebsite.id),
                   metrics,
                   dateRange: {
                     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),

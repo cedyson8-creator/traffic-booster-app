@@ -204,4 +204,6 @@
 - [x] Implement complete database queries for production data
 - [x] Add real data toggle UI to ReportCustomizationModal
 - [x] Implement export handler with real data support
+- [x] Connect auth context to Analytics screen
+- [x] Replace hardcoded userId/websiteId with real user data
 - [ ] Publish app with custom report builder and real data
