@@ -225,4 +225,55 @@ router.get('/recent-failures', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/delivery-analytics/resend/:logId
+ * Manually resend a failed email
+ */
+router.post('/resend/:logId', async (req, res) => {
+  try {
+    const { logId } = req.params;
+    const userId = req.query.userId as string;
+    if (!userId || !logId) {
+      return res.status(400).json({ error: 'userId and logId required' });
+    }
+
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+
+    // Get the failed email log
+    const log = await db
+      .select()
+      .from(emailDeliveryLogs)
+      .where(
+        and(
+          eq(emailDeliveryLogs.id, parseInt(logId)),
+          eq(emailDeliveryLogs.userId, parseInt(userId))
+        )
+      )
+      .limit(1);
+
+    if (log.length === 0) {
+      return res.status(404).json({ error: 'Email log not found' });
+    }
+
+    // Reset the email for retry
+    await db
+      .update(emailDeliveryLogs)
+      .set({
+        status: 'failed',
+        retryCount: 0,
+        nextRetryAt: new Date(),
+        errorMessage: null,
+      })
+      .where(eq(emailDeliveryLogs.id, parseInt(logId)));
+
+    res.json({ success: true, message: 'Email queued for resend' });
+  } catch (error) {
+    console.error('[DeliveryAnalytics] Error resending email:', error);
+    res.status(500).json({ error: 'Failed to resend email' });
+  }
+});
+
 export default router;

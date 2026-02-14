@@ -58,6 +58,7 @@ export default function DeliveryAnalyticsScreen() {
   const [failures, setFailures] = useState<FailureLog[]>([]);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus>('all');
   const [showAlerts, setShowAlerts] = useState(false);
+  const [resendingId, setResendingId] = useState<number | null>(null);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -126,6 +127,24 @@ export default function DeliveryAnalyticsScreen() {
     labelWidth: 50,
     labelTextStyle: { color: colors.muted, fontSize: 10 },
   }));
+
+  // Handle resend failed email
+  const handleResend = async (logId: number) => {
+    setResendingId(logId);
+    try {
+      const response = await fetch(`/api/delivery-analytics/resend/${logId}?userId=${user?.id}`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        // Remove from failures list
+        setFailures(failures.filter(f => f.id !== logId));
+      }
+    } catch (error) {
+      console.error('Error resending email:', error);
+    } finally {
+      setResendingId(null);
+    }
+  };
 
   // Filter failures based on status
   const filteredFailures = statusFilter === 'all' 
@@ -377,6 +396,23 @@ export default function DeliveryAnalyticsScreen() {
                     </Text>
                   </View>
                   <Text className="text-xs text-error mt-1">{failure.errorMessage}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleResend(failure.id)}
+                    disabled={resendingId === failure.id}
+                    style={{
+                      marginTop: 8,
+                      paddingVertical: 6,
+                      paddingHorizontal: 10,
+                      backgroundColor: colors.primary,
+                      borderRadius: 4,
+                      alignSelf: 'flex-start',
+                      opacity: resendingId === failure.id ? 0.6 : 1,
+                    }}
+                  >
+                    <Text style={{ color: colors.background, fontSize: 11, fontWeight: '600' }}>
+                      {resendingId === failure.id ? 'Resending...' : 'Resend'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </View>
