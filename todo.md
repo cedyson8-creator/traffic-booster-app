@@ -239,4 +239,9 @@
 - [x] Integrate preview into edit schedule modal
 - [x] Add preview toggle and display logic
 - [x] Style preview with sample report data
+- [x] Create email delivery tracking database schema
+- [x] Implement delivery logging in email sender service
+- [x] Create schedule creation modal component
+- [x] Integrate schedule creation into Analytics tab
+- [x] Add "Schedule Automated Reports" button to Analytics
 - [ ] Publish app with custom report builder and real data

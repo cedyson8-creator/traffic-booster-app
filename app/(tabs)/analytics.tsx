@@ -7,6 +7,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { generateTrafficStats, mockTrafficSources, mockGeographicData, mockTopPages } from "@/lib/mock-data";
 import { ReportCustomizationModal } from "@/components/report-customization-modal";
+import { CreateScheduleModal } from "@/components/create-schedule-modal";
 import { WebsiteSelector } from "@/components/website-selector";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebsites } from "@/lib/websites-context";
@@ -20,6 +21,7 @@ export default function AnalyticsScreen() {
   const { websites } = useWebsites();
   const [timeRange, setTimeRange] = useState<TimeRange>('7d');
   const [showReportCustomizer, setShowReportCustomizer] = useState(false);
+  const [showCreateSchedule, setShowCreateSchedule] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(websites[0]?.id ?? null);
 
@@ -214,13 +216,21 @@ export default function AnalyticsScreen() {
             </View>
           </View>
 
-          {/* Export Button */}
-          <TouchableOpacity
-            className="bg-primary rounded-full py-4 active:opacity-70"
-            onPress={() => setShowReportCustomizer(true)}
-          >
-            <Text className="text-background font-semibold text-base text-center">📊 Customize & Export Report</Text>
-          </TouchableOpacity>
+          {/* Action Buttons */}
+          <View className="gap-3">
+            <TouchableOpacity
+              className="bg-primary rounded-full py-4 active:opacity-70"
+              onPress={() => setShowReportCustomizer(true)}
+            >
+              <Text className="text-background font-semibold text-base text-center">📊 Customize & Export Report</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-primary/80 rounded-full py-4 active:opacity-70"
+              onPress={() => setShowCreateSchedule(true)}
+            >
+              <Text className="text-background font-semibold text-base text-center">📅 Schedule Automated Reports</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </ScreenContainer>
 
@@ -274,6 +284,21 @@ export default function AnalyticsScreen() {
         }}
         isLoading={isExporting}
       />
+
+      {/* Create Schedule Modal */}
+      {userId && selectedWebsite?.id && (
+        <CreateScheduleModal
+          visible={showCreateSchedule}
+          onClose={() => setShowCreateSchedule(false)}
+          userId={String(userId)}
+          websiteId={selectedWebsite.id}
+          websiteName={selectedWebsite.name ?? 'Website'}
+          onScheduleCreated={() => {
+            setShowCreateSchedule(false);
+            // Optionally refresh schedules or show success message
+          }}
+        />
+      )}
     </>
   );
 }

@@ -122,6 +122,18 @@ export const scheduledReports = mysqlTable("scheduled_reports", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+// Email Delivery Logs table
+export const emailDeliveryLogs = mysqlTable("email_delivery_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  scheduleId: int("scheduleId").notNull(),
+  userId: int("userId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  status: mysqlEnum("status", ["sent", "failed", "bounced"]).notNull(),
+  errorMessage: text("errorMessage"),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 // Export types
 export type Website = typeof websites.$inferSelect;
 export type InsertWebsite = typeof websites.$inferInsert;
@@ -135,3 +147,5 @@ export type IntegrationSyncLog = typeof integrationSyncLog.$inferSelect;
 export type InsertIntegrationSyncLog = typeof integrationSyncLog.$inferInsert;
 export type ScheduledReport = typeof scheduledReports.$inferSelect;
 export type InsertScheduledReport = typeof scheduledReports.$inferInsert;
+export type EmailDeliveryLog = typeof emailDeliveryLogs.$inferSelect;
+export type InsertEmailDeliveryLog = typeof emailDeliveryLogs.$inferInsert;

@@ -22,6 +22,13 @@
       "when": 1771032893933,
       "tag": "0002_jazzy_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1771035711121,
+      "tag": "0003_violet_leper_queen",
+      "breakpoints": true
     }
   ]
 }

@@ -1,9 +1,8 @@
 import { getDb, getUserWebsites } from '@/server/db';
-import { scheduledReports } from '@/drizzle/schema';
+import { scheduledReports, emailDeliveryLogs } from '@/drizzle/schema';
 import { eq, and, lte } from 'drizzle-orm';
 import { TrafficDataService } from './traffic-data.service';
 import { EmailConfigService } from './email-config.service';
-
 /**
  * Email Sender Service
  * Handles sending scheduled reports via email
@@ -100,6 +99,18 @@ export class EmailSenderService {
         emailContent
       );
 
+      // Log successful delivery
+      const dbInstance = await getDb();
+      if (dbInstance) {
+        await dbInstance.insert(emailDeliveryLogs).values({
+          scheduleId: report.id,
+          userId: report.userId,
+          email: report.email,
+          status: 'sent',
+          sentAt: new Date(),
+        } as any);
+      }
+
       // Update last sent timestamp and calculate next send date
       const nextSendAt = this.calculateNextSendDate(
         report.frequency,
@@ -107,7 +118,6 @@ export class EmailSenderService {
         report.dayOfMonth
       );
 
-      const dbInstance = await getDb();
       if (dbInstance) {
         await dbInstance
           .update(scheduledReports)
@@ -123,6 +133,20 @@ export class EmailSenderService {
       );
     } catch (error) {
       console.error(`[EmailSender] Error sending report:`, error);
+      
+      // Log failed delivery
+      const dbInstance = await getDb();
+      if (dbInstance) {
+        await dbInstance.insert(emailDeliveryLogs).values({
+          scheduleId: report.id,
+          userId: report.userId,
+          email: report.email,
+          status: 'failed',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          sentAt: new Date(),
+        } as any);
+      }
+      
       throw error;
     }
   }
