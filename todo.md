@@ -206,4 +206,7 @@
 - [x] Implement export handler with real data support
 - [x] Connect auth context to Analytics screen
 - [x] Replace hardcoded userId/websiteId with real user data
+- [x] Create website selector dropdown component
+- [x] Integrate website selector into Analytics header
+- [x] Update traffic data to reflect selected website
 - [ ] Publish app with custom report builder and real data

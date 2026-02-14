@@ -7,6 +7,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { useColors } from "@/hooks/use-colors";
 import { generateTrafficStats, mockTrafficSources, mockGeographicData, mockTopPages } from "@/lib/mock-data";
 import { ReportCustomizationModal } from "@/components/report-customization-modal";
+import { WebsiteSelector } from "@/components/website-selector";
 import { useAuth } from "@/hooks/use-auth";
 import { useWebsites } from "@/lib/websites-context";
 
@@ -26,6 +27,8 @@ export default function AnalyticsScreen() {
   const userId = user?.id ?? null;
 
   const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+  // Generate traffic data (will vary based on selected website through mock data)
+  const websiteIdNum = selectedWebsite?.id ? parseInt(selectedWebsite.id) : 1;
   const trafficData = generateTrafficStats(days);
 
   const chartData = trafficData.map((stat, index) => ({
@@ -33,7 +36,17 @@ export default function AnalyticsScreen() {
     label: index % Math.floor(days / 7) === 0 ? new Date(stat.date).getDate().toString() : '',
   }));
 
-  const pieData = mockTrafficSources.map((source, index) => ({
+  // Vary traffic sources based on selected website for realistic data
+  const websiteTrafficSources = mockTrafficSources.map((source, index) => {
+    const variation = (websiteIdNum % 3) + 1; // 1-3 multiplier
+    return {
+      ...source,
+      visits: Math.round(source.visits * (0.8 + variation * 0.1)),
+      percentage: source.percentage, // Keep percentages consistent
+    };
+  });
+
+  const pieData = websiteTrafficSources.map((source, index) => ({
     value: source.percentage,
     color: [colors.primary, colors.success, colors.warning, colors.error][index],
     text: `${source.percentage}%`,
@@ -46,17 +59,26 @@ export default function AnalyticsScreen() {
       <ScreenContainer>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}>
           {/* Header */}
-          <View className="mb-6 flex-row items-start justify-between">
-            <View className="flex-1">
-              <Text className="text-3xl font-bold text-foreground">Analytics</Text>
-              <Text className="text-base text-muted mt-1">Comprehensive traffic insights</Text>
+          <View className="mb-6">
+            <View className="flex-row items-start justify-between mb-4">
+              <View className="flex-1">
+                <Text className="text-3xl font-bold text-foreground">Analytics</Text>
+                <Text className="text-base text-muted mt-1">Comprehensive traffic insights</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push("/integrations-dashboard")}
+                className="bg-primary rounded-lg px-3 py-2 ml-2"
+              >
+                <Text className="text-background text-xs font-semibold">Integrations</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => router.push("/integrations-dashboard")}
-              className="bg-primary rounded-lg px-3 py-2 ml-2"
-            >
-              <Text className="text-background text-xs font-semibold">Integrations</Text>
-            </TouchableOpacity>
+
+            {/* Website Selector */}
+            <WebsiteSelector
+              websites={websites}
+              selectedWebsiteId={selectedWebsiteId}
+              onSelectWebsite={setSelectedWebsiteId}
+            />
           </View>
 
           {/* Time Range Selector */}
@@ -130,7 +152,7 @@ export default function AnalyticsScreen() {
             </View>
 
             <View className="gap-2">
-              {mockTrafficSources.map((source, index) => (
+              {websiteTrafficSources.map((source, index) => (
                 <View key={source.source} className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-2">
                     <View
@@ -152,7 +174,7 @@ export default function AnalyticsScreen() {
           <View className="bg-surface rounded-2xl p-4 border border-border mb-6">
             <Text className="text-base font-semibold text-foreground mb-3">Geographic Distribution</Text>
             <View className="gap-2">
-              {mockGeographicData.map((geo) => (
+              {mockGeographicData.slice(0, 3).map((geo) => (
                 <View key={geo.country}>
                   <View className="flex-row items-center justify-between mb-1">
                     <Text className="text-sm text-foreground">{geo.country}</Text>
@@ -173,7 +195,7 @@ export default function AnalyticsScreen() {
           <View className="bg-surface rounded-2xl p-4 border border-border mb-6">
             <Text className="text-base font-semibold text-foreground mb-3">Top Pages</Text>
             <View className="gap-3">
-              {mockTopPages.map((page, index) => (
+              {mockTopPages.slice(0, 5).map((page, index) => (
                 <View key={page.url} className="flex-row items-start gap-3">
                   <View className="w-6 h-6 bg-primary/10 rounded-full items-center justify-center">
                     <Text className="text-xs font-bold text-primary">{index + 1}</Text>
