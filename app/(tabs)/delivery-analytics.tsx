@@ -5,6 +5,8 @@ import { Dimensions } from 'react-native';
 
 import { ScreenContainer } from '@/components/screen-container';
 import { AlertsNotification } from '@/components/alerts-notification';
+import { BounceManagementModal } from '@/components/bounce-management-modal';
+import { DeliveryTimeline } from '@/components/delivery-timeline';
 import { useColors } from '@/hooks/use-colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useWebsites } from '@/lib/websites-context';
@@ -58,6 +60,8 @@ export default function DeliveryAnalyticsScreen() {
   const [failures, setFailures] = useState<FailureLog[]>([]);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus>('all');
   const [showAlerts, setShowAlerts] = useState(false);
+  const [showBounces, setShowBounces] = useState(false);
+  const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [resendingId, setResendingId] = useState<number | null>(null);
   const [bulkResending, setBulkResending] = useState(false);
 
@@ -382,7 +386,20 @@ export default function DeliveryAnalyticsScreen() {
           </View>
         )}
 
-        {/* Bulk Resend Button */}
+         {/* Event Timeline */}
+        {selectedLogId && (
+          <View className="bg-surface rounded-lg p-4 mb-6 border border-border">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text className="text-base font-semibold text-foreground">📊 Delivery Timeline</Text>
+              <TouchableOpacity onPress={() => setSelectedLogId(null)}>
+                <Text className="text-sm text-primary">✕</Text>
+              </TouchableOpacity>
+            </View>
+            <DeliveryTimeline logId={selectedLogId} userId={String(user?.id || '')} />
+          </View>
+        )}
+
+        {/* Failures Section */}
         {failures.length > 0 && (
           <TouchableOpacity
             onPress={handleBulkResend}
@@ -473,6 +490,7 @@ export default function DeliveryAnalyticsScreen() {
             <Text className="text-base font-semibold text-foreground mb-4">Bounced Emails ({summary.bounced})</Text>
             <Text className="text-sm text-muted mb-4">These addresses are invalid and should be removed from future sends.</Text>
             <TouchableOpacity
+              onPress={() => setShowBounces(true)}
               style={{
                 backgroundColor: colors.error + '20',
                 borderRadius: 8,
@@ -520,7 +538,15 @@ export default function DeliveryAnalyticsScreen() {
           <Text className="text-center font-semibold text-background">🔄 Refresh Analytics</Text>
         </TouchableOpacity>
       </ScrollView>
-      <AlertsNotification visible={showAlerts} onClose={() => setShowAlerts(false)} />
+      <AlertsNotification
+        visible={showAlerts}
+        onClose={() => setShowAlerts(false)}
+      />
+      <BounceManagementModal
+        visible={showBounces}
+        onClose={() => setShowBounces(false)}
+        userId={String(user?.id || '')}
+      />
     </ScreenContainer>
   );
 }
