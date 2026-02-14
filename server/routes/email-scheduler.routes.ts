@@ -47,13 +47,13 @@ router.post('/schedule', async (req: Request, res: Response) => {
         nextSendAt,
       });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: formatScheduledReport(result[0]),
     });
   } catch (error) {
     console.error('Error creating scheduled report:', error);
-    res.status(500).json({ error: 'Failed to create scheduled report' });
+    return res.status(500).json({ error: 'Failed to create scheduled report' });
   }
 });
 
@@ -79,13 +79,13 @@ router.get('/schedules', async (req: Request, res: Response) => {
       .from(scheduledReports)
       .where(eq(scheduledReports.userId, parseInt(userId)));
 
-    res.json({
+    return res.json({
       success: true,
       data: reports.map(formatScheduledReport),
     });
   } catch (error) {
     console.error('Error fetching scheduled reports:', error);
-    res.status(500).json({ error: 'Failed to fetch scheduled reports' });
+    return res.status(500).json({ error: 'Failed to fetch scheduled reports' });
   }
 });
 
@@ -122,13 +122,13 @@ router.get('/schedules/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Scheduled report not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: formatScheduledReport(report[0]),
     });
   } catch (error) {
     console.error('Error fetching scheduled report:', error);
-    res.status(500).json({ error: 'Failed to fetch scheduled report' });
+    return res.status(500).json({ error: 'Failed to fetch scheduled report' });
   }
 });
 
@@ -188,13 +188,13 @@ router.put('/schedules/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Scheduled report not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: formatScheduledReport(result[0]),
     });
   } catch (error) {
     console.error('Error updating scheduled report:', error);
-    res.status(500).json({ error: 'Failed to update scheduled report' });
+    return res.status(500).json({ error: 'Failed to update scheduled report' });
   }
 });
 
@@ -225,10 +225,10 @@ router.delete('/schedules/:id', async (req: Request, res: Response) => {
         )
       );
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error('Error deleting scheduled report:', error);
-    res.status(500).json({ error: 'Failed to delete scheduled report' });
+    return res.status(500).json({ error: 'Failed to delete scheduled report' });
   }
 });
 
@@ -274,13 +274,13 @@ router.patch('/schedules/:id/toggle', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Scheduled report not found' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: formatScheduledReport(result[0]),
     });
   } catch (error) {
     console.error('Error toggling scheduled report:', error);
-    res.status(500).json({ error: 'Failed to toggle scheduled report' });
+    return res.status(500).json({ error: 'Failed to toggle scheduled report' });
   }
 });
 

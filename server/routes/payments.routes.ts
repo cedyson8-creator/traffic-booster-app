@@ -19,13 +19,13 @@ router.get('/subscription', async (req: Request, res: Response) => {
     const subscription = await StripePaymentService.getUserSubscription(userId);
     const features = await FeatureGatingService.getUserFeatureAccess(userId);
 
-    res.json({
+    return res.json({
       subscription: subscription || null,
       features,
     });
   } catch (error) {
     console.error('[PaymentRoutes] Error getting subscription:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -36,10 +36,10 @@ router.get('/subscription', async (req: Request, res: Response) => {
 router.get('/plans', async (req: Request, res: Response) => {
   try {
     const plans = await FeatureGatingService.getPlanComparison();
-    res.json(plans);
+    return res.json(plans);
   } catch (error) {
     console.error('[PaymentRoutes] Error getting plans:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -80,13 +80,13 @@ router.post('/subscribe', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to create subscription' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       subscriptionId: result.subscriptionId,
     });
   } catch (error) {
     console.error('[PaymentRoutes] Error creating subscription:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -113,10 +113,10 @@ router.post('/upgrade', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to upgrade subscription' });
     }
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error('[PaymentRoutes] Error upgrading subscription:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -139,10 +139,10 @@ router.post('/cancel', async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Failed to cancel subscription' });
     }
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error('[PaymentRoutes] Error canceling subscription:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -160,13 +160,13 @@ router.get('/usage', async (req: Request, res: Response) => {
     const usage = await StripePaymentService.getUserUsage(userId);
     const limits = await StripePaymentService.checkUsageLimits(userId);
 
-    res.json({
+    return res.json({
       usage,
       limits,
     });
   } catch (error) {
     console.error('[PaymentRoutes] Error getting usage:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -183,10 +183,10 @@ router.get('/invoices', async (req: Request, res: Response) => {
 
     const invoices = await StripePaymentService.getUserInvoices(userId);
 
-    res.json(invoices || []);
+    return res.json(invoices || []);
   } catch (error) {
     console.error('[PaymentRoutes] Error getting invoices:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -209,10 +209,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
       return res.status(400).json(result);
     }
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error('[PaymentRoutes] Error handling webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -229,10 +229,10 @@ router.get('/upgrade-recommendation', async (req: Request, res: Response) => {
 
     const recommendation = await FeatureGatingService.getUpgradeRecommendation(userId);
 
-    res.json({ recommendation });
+    return res.json({ recommendation });
   } catch (error) {
     console.error('[PaymentRoutes] Error getting upgrade recommendation:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

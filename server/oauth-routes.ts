@@ -27,10 +27,10 @@ router.get("/authorize/:provider", (req: Request, res: Response) => {
 
     // Store state in session or database for verification
     // For now, we'll just return the URL
-    res.json({ url, state, provider });
+    return res.json({ url, state, provider });
   } catch (error) {
     console.error("[OAuth] Failed to generate authorization URL:", error);
-    res.status(500).json({ error: "Failed to generate authorization URL" });
+    return res.status(500).json({ error: "Failed to generate authorization URL" });
   }
 });
 
@@ -78,10 +78,10 @@ router.get("/callback/:provider", async (req: Request, res: Response) => {
     }
 
     // Redirect to success page or app
-    res.redirect(`/integrations?provider=${provider}&success=true`);
+    return res.redirect(`/integrations?provider=${provider}&success=true`);
   } catch (error) {
     console.error("[OAuth] Callback failed:", error);
-    res.redirect(`/integrations?provider=${provider}&error=true`);
+    return res.redirect(`/integrations?provider=${provider}&error=true`);
   }
 });
 
@@ -111,10 +111,10 @@ router.post("/disconnect/:provider", async (req: Request, res: Response) => {
       });
     }
 
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     console.error("[OAuth] Disconnect failed:", error);
-    res.status(500).json({ error: "Failed to disconnect" });
+    return res.status(500).json({ error: "Failed to disconnect" });
   }
 });
 
@@ -151,10 +151,10 @@ router.post("/refresh/:provider", async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ success: true, token: newToken });
+    return res.json({ success: true, token: newToken });
   } catch (error) {
     console.error("[OAuth] Token refresh failed:", error);
-    res.status(500).json({ error: "Failed to refresh token" });
+    return res.status(500).json({ error: "Failed to refresh token" });
   }
 });
 

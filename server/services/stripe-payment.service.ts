@@ -482,10 +482,12 @@ export class StripePaymentService {
       const stripeInvoice = await stripe.invoices.retrieve(stripeInvoiceId);
 
       // Get subscription
+      const subscriptionId = (stripeInvoice as any).subscription as string;
+      
       const subscription = await db
         .select()
         .from(userSubscriptions)
-        .where(eq(userSubscriptions.stripeSubscriptionId, stripeInvoice.subscription as string));
+        .where(eq(userSubscriptions.stripeSubscriptionId, subscriptionId));
 
       if (!subscription || subscription.length === 0) {
         return false;

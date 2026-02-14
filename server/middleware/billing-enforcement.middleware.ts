@@ -41,10 +41,10 @@ export async function enforceBillingLimits(req: Request, res: Response, next: Ne
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error enforcing billing limits:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -71,10 +71,10 @@ export async function checkWebsiteCreationLimit(req: Request, res: Response, nex
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking website creation limit:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -101,10 +101,10 @@ export async function checkScheduleCreationLimit(req: Request, res: Response, ne
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking schedule creation limit:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -133,10 +133,10 @@ export async function checkEmailSendingLimit(req: Request, res: Response, next: 
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking email sending limit:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -159,10 +159,10 @@ export async function checkAdvancedAnalyticsAccess(req: Request, res: Response, 
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking advanced analytics access:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -185,10 +185,10 @@ export async function checkWebhookAccess(req: Request, res: Response, next: Next
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking webhook access:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
@@ -211,9 +211,9 @@ export async function checkAPIAccess(req: Request, res: Response, next: NextFunc
       });
     }
 
-    next();
+    return next();
   } catch (error) {
     console.error('[BillingEnforcement] Error checking API access:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

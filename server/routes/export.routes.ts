@@ -26,10 +26,10 @@ router.post('/pdf', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.pdf"`
     );
-    res.send(pdfBuffer);
+    return res.send(pdfBuffer);
   } catch (error) {
     console.error('PDF export error:', error);
-    res.status(500).json({ error: 'Failed to generate PDF report' });
+    return res.status(500).json({ error: 'Failed to generate PDF report' });
   }
 });
 
@@ -70,10 +70,10 @@ router.post('/pdf-real', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.pdf"`
     );
-    res.send(pdfBuffer);
+    return res.send(pdfBuffer);
   } catch (error) {
     console.error('PDF real data export error:', error);
-    res.status(500).json({ error: 'Failed to generate PDF report with real data' });
+    return res.status(500).json({ error: 'Failed to generate PDF report with real data' });
   }
 });
 
@@ -100,10 +100,10 @@ router.post('/pdf-custom', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.pdf"`
     );
-    res.send(pdfBuffer);
+    return res.send(pdfBuffer);
   } catch (error) {
     console.error('PDF custom export error:', error);
-    res.status(500).json({ error: 'Failed to generate custom PDF report' });
+    return res.status(500).json({ error: 'Failed to generate custom PDF report' });
   }
 });
 
@@ -129,10 +129,10 @@ router.post('/csv', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.csv"`
     );
-    res.send(csvContent);
+    return res.send(csvContent);
   } catch (error) {
     console.error('CSV export error:', error);
-    res.status(500).json({ error: 'Failed to generate CSV report' });
+    return res.status(500).json({ error: 'Failed to generate CSV report' });
   }
 });
 
@@ -173,10 +173,10 @@ router.post('/csv-real', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.csv"`
     );
-    res.send(csvContent);
+    return res.send(csvContent);
   } catch (error) {
     console.error('CSV real data export error:', error);
-    res.status(500).json({ error: 'Failed to generate CSV report with real data' });
+    return res.status(500).json({ error: 'Failed to generate CSV report with real data' });
   }
 });
 
@@ -203,10 +203,10 @@ router.post('/csv-custom', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.csv"`
     );
-    res.send(csvContent);
+    return res.send(csvContent);
   } catch (error) {
     console.error('CSV custom export error:', error);
-    res.status(500).json({ error: 'Failed to generate custom CSV report' });
+    return res.status(500).json({ error: 'Failed to generate custom CSV report' });
   }
 });
 
@@ -232,10 +232,10 @@ router.post('/json', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.json"`
     );
-    res.send(jsonContent);
+    return res.send(jsonContent);
   } catch (error) {
     console.error('JSON export error:', error);
-    res.status(500).json({ error: 'Failed to generate JSON report' });
+    return res.status(500).json({ error: 'Failed to generate JSON report' });
   }
 });
 
@@ -276,10 +276,10 @@ router.post('/json-real', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.json"`
     );
-    res.send(jsonContent);
+    return res.send(jsonContent);
   } catch (error) {
     console.error('JSON real data export error:', error);
-    res.status(500).json({ error: 'Failed to generate JSON report with real data' });
+    return res.status(500).json({ error: 'Failed to generate JSON report with real data' });
   }
 });
 
@@ -306,10 +306,10 @@ router.post('/json-custom', async (req: Request, res: Response) => {
       'Content-Disposition',
       `attachment; filename="traffic-report-${new Date().toISOString().split('T')[0]}.json"`
     );
-    res.send(jsonContent);
+    return res.send(jsonContent);
   } catch (error) {
     console.error('JSON custom export error:', error);
-    res.status(500).json({ error: 'Failed to generate custom JSON report' });
+    return res.status(500).json({ error: 'Failed to generate custom JSON report' });
   }
 });
 

@@ -57,14 +57,14 @@ router.post('/sendgrid', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       processed,
       message: `Processed ${processed} SendGrid events`,
     });
   } catch (error) {
     console.error('[Webhooks] Error processing SendGrid webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -108,13 +108,13 @@ router.post('/mailgun', async (req: Request, res: Response) => {
       metadata: parsedEvent.metadata,
     });
 
-    res.json({
+    return res.json({
       success,
       message: success ? 'Mailgun event processed' : 'Failed to process event',
     });
   } catch (error) {
     console.error('[Webhooks] Error processing Mailgun webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -153,13 +153,13 @@ router.post('/aws-ses', async (req: Request, res: Response) => {
       metadata: parsedEvent.metadata,
     });
 
-    res.json({
+    return res.json({
       success,
       message: success ? 'AWS SES event processed' : 'Failed to process event',
     });
   } catch (error) {
     console.error('[Webhooks] Error processing AWS SES webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -196,13 +196,13 @@ router.post('/delivery', async (req: Request, res: Response) => {
     });
 
     if (success) {
-      res.json({ success: true, message: 'Webhook event processed' });
+      return res.json({ success: true, message: 'Webhook event processed' });
     } else {
-      res.status(500).json({ error: 'Failed to process webhook event' });
+      return res.status(500).json({ error: 'Failed to process webhook event' });
     }
   } catch (error) {
     console.error('[Webhooks] Error processing delivery webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -243,7 +243,7 @@ router.post('/delivery/batch', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({
+    return res.json({
       success: true,
       processed,
       failed,
@@ -251,7 +251,7 @@ router.post('/delivery/batch', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('[Webhooks] Error processing batch webhooks:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -270,7 +270,7 @@ router.get('/events/:logId', async (req: Request, res: Response) => {
 
     // In a real app, fetch from database
     // For now, return empty array
-    res.json({
+    return res.json({
       success: true,
       logId: parseInt(logId),
       events: [],
@@ -278,7 +278,7 @@ router.get('/events/:logId', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('[Webhooks] Error fetching events:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -304,13 +304,13 @@ router.post('/stripe', async (req: Request, res: Response) => {
     );
 
     if (result.success) {
-      res.json({ success: true, message: result.message });
+      return res.json({ success: true, message: result.message });
     } else {
-      res.status(400).json({ success: false, error: result.message });
+      return res.status(400).json({ success: false, error: result.message });
     }
   } catch (error) {
     console.error('[Webhooks] Error processing Stripe webhook:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

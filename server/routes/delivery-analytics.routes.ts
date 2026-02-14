@@ -38,7 +38,7 @@ router.get('/summary', async (req, res) => {
     const failureRate = total > 0 ? Math.round((failed / total) * 100) : 0;
     const bounceRate = total > 0 ? Math.round((bounced / total) * 100) : 0;
 
-    res.json({
+    return res.json({
       total,
       sent,
       failed,
@@ -49,7 +49,7 @@ router.get('/summary', async (req, res) => {
     });
   } catch (error) {
     console.error('[DeliveryAnalytics] Error fetching summary:', error);
-    res.status(500).json({ error: 'Failed to fetch delivery summary' });
+    return res.status(500).json({ error: 'Failed to fetch delivery summary' });
   }
 });
 
@@ -113,10 +113,10 @@ router.get('/by-schedule', async (req, res) => {
       successRate: s.total > 0 ? Math.round((s.sent / s.total) * 100) : 0,
     }));
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error('[DeliveryAnalytics] Error fetching by-schedule stats:', error);
-    res.status(500).json({ error: 'Failed to fetch schedule stats' });
+    return res.status(500).json({ error: 'Failed to fetch schedule stats' });
   }
 });
 
@@ -176,10 +176,10 @@ router.get('/timeline', async (req, res) => {
     });
 
     const result = Array.from(byDate.values());
-    res.json(result);
+    return res.json(result);
   } catch (error) {
     console.error('[DeliveryAnalytics] Error fetching timeline:', error);
-    res.status(500).json({ error: 'Failed to fetch delivery timeline' });
+    return res.status(500).json({ error: 'Failed to fetch delivery timeline' });
   }
 });
 
@@ -218,10 +218,10 @@ router.get('/recent-failures', async (req, res) => {
       .orderBy(sql`${emailDeliveryLogs.sentAt} DESC`)
       .limit(limit);
 
-    res.json(failures);
+    return res.json(failures);
   } catch (error) {
     console.error('[DeliveryAnalytics] Error fetching recent failures:', error);
-    res.status(500).json({ error: 'Failed to fetch recent failures' });
+    return res.status(500).json({ error: 'Failed to fetch recent failures' });
   }
 });
 
@@ -269,10 +269,10 @@ router.post('/resend/:logId', async (req, res) => {
       })
       .where(eq(emailDeliveryLogs.id, parseInt(logId)));
 
-    res.json({ success: true, message: 'Email queued for resend' });
+    return res.json({ success: true, message: 'Email queued for resend' });
   } catch (error) {
     console.error('[DeliveryAnalytics] Error resending email:', error);
-    res.status(500).json({ error: 'Failed to resend email' });
+    return res.status(500).json({ error: 'Failed to resend email' });
   }
 });
 
@@ -323,10 +323,10 @@ router.post('/resend-all', async (req, res) => {
         )
       );
 
-    res.json({ success: true, message: `Queued ${failedEmails.length} emails for resend`, count: failedEmails.length });
+    return res.json({ success: true, message: `Queued ${failedEmails.length} emails for resend`, count: failedEmails.length });
   } catch (error) {
     console.error('[DeliveryAnalytics] Error bulk resending emails:', error);
-    res.status(500).json({ error: 'Failed to bulk resend emails' });
+    return res.status(500).json({ error: 'Failed to bulk resend emails' });
   }
 });
 

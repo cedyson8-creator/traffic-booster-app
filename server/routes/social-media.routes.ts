@@ -23,10 +23,10 @@ router.post('/meta/auth', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid access token' });
     }
 
-    res.json({ success: true, message: 'Access token validated' });
+    return res.json({ success: true, message: 'Access token validated' });
   } catch (error) {
     console.error('[SocialMedia] Error validating Meta token:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -44,10 +44,10 @@ router.get('/meta/pages', async (req: Request, res: Response) => {
 
     const pages = await MetaGraphAPIService.getUserPages(accessToken as string);
 
-    res.json({ success: true, pages });
+    return res.json({ success: true, pages });
   } catch (error) {
     console.error('[SocialMedia] Error fetching Meta pages:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -66,10 +66,10 @@ router.get('/meta/page/:pageId/insights', async (req: Request, res: Response) =>
 
     const insights = await MetaGraphAPIService.getPageInsights(pageId, accessToken as string);
 
-    res.json({ success: true, insights });
+    return res.json({ success: true, insights });
   } catch (error) {
     console.error('[SocialMedia] Error fetching page insights:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -92,10 +92,10 @@ router.get('/meta/page/:pageId/posts', async (req: Request, res: Response) => {
       parseInt(limit as string) || 10
     );
 
-    res.json({ success: true, posts });
+    return res.json({ success: true, posts });
   } catch (error) {
     console.error('[SocialMedia] Error fetching page posts:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -118,10 +118,10 @@ router.get('/instagram/account/:pageId', async (req: Request, res: Response) => 
       return res.status(404).json({ error: 'Instagram account not found' });
     }
 
-    res.json({ success: true, account });
+    return res.json({ success: true, account });
   } catch (error) {
     console.error('[SocialMedia] Error fetching Instagram account:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -140,10 +140,10 @@ router.get('/instagram/:accountId/insights', async (req: Request, res: Response)
 
     const insights = await MetaGraphAPIService.getInstagramInsights(accountId, accessToken as string);
 
-    res.json({ success: true, insights });
+    return res.json({ success: true, insights });
   } catch (error) {
     console.error('[SocialMedia] Error fetching Instagram insights:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -166,10 +166,10 @@ router.get('/instagram/:accountId/media', async (req: Request, res: Response) =>
       parseInt(limit as string) || 10
     );
 
-    res.json({ success: true, media });
+    return res.json({ success: true, media });
   } catch (error) {
     console.error('[SocialMedia] Error fetching Instagram media:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -191,10 +191,10 @@ router.post('/tiktok/auth', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid access token' });
     }
 
-    res.json({ success: true, message: 'Access token validated' });
+    return res.json({ success: true, message: 'Access token validated' });
   } catch (error) {
     console.error('[SocialMedia] Error validating TikTok token:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -216,10 +216,10 @@ router.get('/tiktok/user', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ success: true, user });
+    return res.json({ success: true, user });
   } catch (error) {
     console.error('[SocialMedia] Error fetching TikTok user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -240,10 +240,10 @@ router.get('/tiktok/videos', async (req: Request, res: Response) => {
       parseInt(limit as string) || 10
     );
 
-    res.json({ success: true, videos });
+    return res.json({ success: true, videos });
   } catch (error) {
     console.error('[SocialMedia] Error fetching TikTok videos:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -265,10 +265,10 @@ router.get('/tiktok/analytics', async (req: Request, res: Response) => {
       endDate as string
     );
 
-    res.json({ success: true, analytics });
+    return res.json({ success: true, analytics });
   } catch (error) {
     console.error('[SocialMedia] Error fetching TikTok analytics:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -286,10 +286,10 @@ router.get('/tiktok/auth-url', (req: Request, res: Response) => {
 
     const authUrl = TikTokAPIService.getAuthorizationUrl(redirectUri as string, state as string);
 
-    res.json({ success: true, authUrl });
+    return res.json({ success: true, authUrl });
   } catch (error) {
     console.error('[SocialMedia] Error generating TikTok auth URL:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -308,13 +308,13 @@ router.post('/tiktok/exchange-code', async (req: Request, res: Response) => {
     const tokens = await TikTokAPIService.exchangeCodeForToken(code, redirectUri);
 
     if (!tokens) {
-      return res.status(401).json({ error: 'Failed to exchange code for token' });
+      return res.status(400).json({ error: 'Failed to exchange code for token' });
     }
 
-    res.json({ success: true, tokens });
+    return res.json({ success: true, tokens });
   } catch (error) {
     console.error('[SocialMedia] Error exchanging TikTok code:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
