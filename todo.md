@@ -502,3 +502,36 @@
 - [x] Test multi-currency flows
 - [x] Test signature verification UI
 - [x] Test analytics dashboard
+
+## Advanced Internationalization (Phase 11)
+- [x] Implement i18n library integration
+- [x] Create language configuration system
+- [x] Build language selector UI
+- [x] Add 5+ language support (EN, ES, FR, DE, JP)
+- [x] Translate all UI text
+- [x] Implement currency name localization
+- [x] Add regional date/time formatting
+- [x] Build language persistence
+- [x] Test all language flows
+
+## Webhook Replay System (Phase 12)
+- [x] Create webhook replay service
+- [x] Build webhook replay UI screen
+- [x] Implement payload editor with JSON validation
+- [x] Add retry history viewer
+- [x] Create replay status tracking
+- [x] Build replay logs with timestamps
+- [x] Implement batch replay functionality
+- [x] Add replay scheduling
+- [x] Test webhook replay flows
+
+## Custom Alerts System (Phase 13)
+- [x] Create alert configuration service
+- [x] Build alert creation UI
+- [x] Implement threshold-based triggers
+- [x] Add alert delivery channels (email, Slack, Discord)
+- [x] Create alert history tracking
+- [x] Build alert management UI
+- [x] Implement alert testing
+- [x] Add alert cooldown/deduplication
+- [x] Test alert delivery flows
