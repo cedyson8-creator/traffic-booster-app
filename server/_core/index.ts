@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import exportRoutes from "../routes/export.routes";
 import emailSchedulerRoutes from "../routes/email-scheduler.routes";
+import { ReportSchedulerService } from "../services/report-scheduler.service";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -85,6 +86,18 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`[api] server listening on port ${port}`);
+    // Start the report scheduler for sending scheduled emails
+    ReportSchedulerService.start();
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('[api] SIGTERM received, shutting down gracefully');
+    ReportSchedulerService.stop();
+    server.close(() => {
+      console.log('[api] Server closed');
+      process.exit(0);
+    });
   });
 }
 
