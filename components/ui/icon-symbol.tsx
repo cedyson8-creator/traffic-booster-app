@@ -24,6 +24,7 @@ const MAPPING = {
   "arrow.up.right": "trending-up",
   "globe": "public",
   "chart.line.uptrend.xyaxis": "show-chart",
+  "calendar": "calendar-today",
 } as IconMapping;
 
 /**

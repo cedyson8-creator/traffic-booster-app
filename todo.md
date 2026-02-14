@@ -230,4 +230,9 @@
 - [x] Create scheduled reports management screen UI
 - [x] Implement schedule list, edit, and delete functionality
 - [x] Add pause/resume and status indicators
+- [x] Create edit schedule modal component
+- [x] Implement edit schedule API endpoint (PUT)
+- [x] Integrate edit modal into schedules screen
+- [x] Add Schedules tab to tab bar navigation
+- [x] Add Schedules icon mapping
 - [ ] Publish app with custom report builder and real data

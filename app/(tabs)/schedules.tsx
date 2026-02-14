@@ -5,6 +5,7 @@ import { useColors } from '@/hooks/use-colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useWebsites } from '@/lib/websites-context';
 import { cn } from '@/lib/utils';
+import { EditScheduleModal } from '@/components/edit-schedule-modal';
 
 interface ScheduledReport {
   id: number;
@@ -25,6 +26,8 @@ export default function SchedulesScreen() {
   const [schedules, setSchedules] = useState<ScheduledReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<ScheduledReport | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadSchedules();
@@ -222,6 +225,18 @@ export default function SchedulesScreen() {
                     {selectedScheduleId === schedule.id && (
                       <View className="border-t border-border pt-3 gap-2 mt-3">
                         <Pressable
+                          onPress={() => {
+                            setEditingSchedule(schedule);
+                            setShowEditModal(true);
+                          }}
+                          style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                        >
+                          <View className="bg-primary/10 py-2 px-3 rounded">
+                            <Text className="text-sm font-semibold text-primary text-center">Edit Schedule</Text>
+                          </View>
+                        </Pressable>
+
+                        <Pressable
                           onPress={() => toggleSchedule(schedule.id, schedule.isActive)}
                           style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
                         >
@@ -249,6 +264,21 @@ export default function SchedulesScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Edit Schedule Modal */}
+      <EditScheduleModal
+        visible={showEditModal}
+        schedule={editingSchedule}
+        userId={user?.id || 0}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingSchedule(null);
+        }}
+        onSave={() => {
+          loadSchedules();
+          setSelectedScheduleId(null);
+        }}
+      />
     </ScreenContainer>
   );
 }
