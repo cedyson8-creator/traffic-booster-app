@@ -255,4 +255,7 @@
 - [x] Integrate alerts into report scheduler
 - [x] Create alerts notification UI component
 - [x] Push database schema changes for retry and alerts tables
+- [x] Fix AlertsNotification component with proper React Native syntax
+- [x] Integrate AlertsNotification into Delivery Analytics screen
+- [x] Add alerts button to Delivery Analytics header
 - [ ] Publish app with custom report builder and real data

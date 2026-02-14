@@ -4,6 +4,7 @@ import { LineChart, BarChart } from 'react-native-gifted-charts';
 import { Dimensions } from 'react-native';
 
 import { ScreenContainer } from '@/components/screen-container';
+import { AlertsNotification } from '@/components/alerts-notification';
 import { useColors } from '@/hooks/use-colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useWebsites } from '@/lib/websites-context';
@@ -56,6 +57,7 @@ export default function DeliveryAnalyticsScreen() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [failures, setFailures] = useState<FailureLog[]>([]);
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus>('all');
+  const [showAlerts, setShowAlerts] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -139,8 +141,23 @@ export default function DeliveryAnalyticsScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 100 }}>
         {/* Header */}
         <View className="mb-6">
-          <Text className="text-3xl font-bold text-foreground">Delivery Analytics</Text>
-          <Text className="text-base text-muted mt-1">Email delivery performance</Text>
+          <View className="flex-row justify-between items-center">
+            <View className="flex-1">
+              <Text className="text-3xl font-bold text-foreground">Delivery Analytics</Text>
+              <Text className="text-base text-muted mt-1">Email delivery performance</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => setShowAlerts(true)}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                backgroundColor: colors.primary,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: colors.background, fontSize: 14, fontWeight: '600' }}>Alerts</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Status Filters */}
@@ -399,6 +416,7 @@ export default function DeliveryAnalyticsScreen() {
           <Text className="text-center font-semibold text-background">🔄 Refresh Analytics</Text>
         </TouchableOpacity>
       </ScrollView>
+      <AlertsNotification visible={showAlerts} onClose={() => setShowAlerts(false)} />
     </ScreenContainer>
   );
 }
