@@ -187,3 +187,12 @@
 - [x] Integrate export routes into backend server
 - [x] Verify export endpoints are working
 - [ ] Publish app with new export features
+
+## Custom Report Builder Feature
+- [x] Design custom report builder UI and data model
+- [x] Create report customization React component
+- [x] Implement metric selection and preview functionality
+- [x] Integrate report builder with export service
+- [x] Add report template presets and saving
+- [x] Test custom report builder end-to-end
+- [ ] Publish app with custom report builder
