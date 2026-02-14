@@ -10,6 +10,7 @@ import exportRoutes from "../routes/export.routes";
 import emailSchedulerRoutes from "../routes/email-scheduler.routes";
 import webhooksRoutes from "../routes/webhooks.routes";
 import paymentRoutes from "../routes/payments.routes";
+import socialMediaRoutes from "../routes/social-media.routes";
 import { ReportSchedulerService } from "../services/report-scheduler.service";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -72,6 +73,9 @@ async function startServer() {
 
   // Payment routes
   app.use("/api/payments", paymentRoutes);
+
+  // Social media routes
+  app.use("/api/social-media", socialMediaRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
