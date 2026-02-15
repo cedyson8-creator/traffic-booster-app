@@ -649,3 +649,6 @@
 - [x] Write integration tests for WebSocket service
 - [x] Write integration tests for event emitters
 - [ ] Test real-time updates end-to-end on mobile and web
+
+## Bug Fixes
+- [x] Fix WebSocket import error (ws module CommonJS/ESM compatibility)

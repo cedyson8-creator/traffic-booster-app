@@ -1,7 +1,9 @@
 import { Server } from 'http';
 
 // @ts-ignore - ws module types
-import { WebSocketServer } from 'ws';
+import WebSocketModule from 'ws';
+
+const WebSocketServer = WebSocketModule.WebSocketServer || WebSocketModule;
 
 interface MetricUpdate {
   type: 'performance' | 'forecast' | 'optimization';
@@ -31,7 +33,18 @@ export class WebSocketService {
   }
 
   initialize(server: Server): void {
-    this.wss = new WebSocketServer({ server });
+    if (this.wss) {
+      console.log('[WebSocket] Already initialized');
+      return;
+    }
+
+    try {
+      this.wss = new WebSocketServer({ server });
+      console.log('[WebSocket] WebSocketServer initialized successfully');
+    } catch (error) {
+      console.error('[WebSocket] Failed to initialize WebSocketServer:', error);
+      return;
+    }
 
     this.wss.on('connection', (ws: any) => {
       const clientId = `client_${++this.clientCounter}`;
@@ -81,6 +94,11 @@ export class WebSocketService {
   }
 
   broadcast(update: MetricUpdate): void {
+    if (!this.wss) {
+      console.log('[WebSocket] WebSocket not initialized, skipping broadcast');
+      return;
+    }
+
     this.clients.forEach(subscription => {
       if (subscription.types.has(update.type) && subscription.ws.readyState === 1) {
         subscription.ws.send(JSON.stringify(update));
@@ -89,6 +107,11 @@ export class WebSocketService {
   }
 
   broadcastToAll(update: MetricUpdate): void {
+    if (!this.wss) {
+      console.log('[WebSocket] WebSocket not initialized, skipping broadcast');
+      return;
+    }
+
     this.clients.forEach(subscription => {
       if (subscription.ws.readyState === 1) {
         subscription.ws.send(JSON.stringify(update));
@@ -104,6 +127,7 @@ export class WebSocketService {
     if (this.wss) {
       this.wss.close();
       this.clients.clear();
+      this.wss = null;
     }
   }
 }
