@@ -1,8 +1,9 @@
-import { ScrollView, Text, View, Pressable, Alert } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { useColors } from '@/hooks/use-colors';
 import { useState, useEffect } from 'react';
 import { useWebSocket, WebSocketMessage } from '@/hooks/use-websocket';
+import Animated, { FadeIn, SlideInRight } from 'react-native-reanimated';
 
 interface PerformanceMetric {
   endpoint: string;
@@ -27,9 +28,10 @@ export default function PerformanceDashboardLive() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // WebSocket connection
-  const { isConnected, error } = useWebSocket(['performance'], (message: WebSocketMessage) => {
+  const { isConnected, error, subscribe } = useWebSocket(['performance'], (message: WebSocketMessage) => {
     if (message.type === 'performance') {
       const perfData = message as any;
       if (perfData.metrics && Array.isArray(perfData.metrics)) {
@@ -41,6 +43,26 @@ export default function PerformanceDashboardLive() {
       setLastUpdate(new Date());
     }
   });
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Force re-subscribe to get fresh data
+      if (subscribe) {
+        subscribe(['performance']);
+      }
+      // Simulate refresh delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleManualRefresh = () => {
+    handleRefresh();
+  };
 
   const handleExport = async (format: 'csv' | 'json' | 'html') => {
     setIsExporting(true);
@@ -123,13 +145,22 @@ export default function PerformanceDashboardLive() {
   };
 
   return (
-    <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="gap-6">
+    <ScreenContainer className="p-0">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        <View className="p-4 gap-6">
           {/* Header */}
-          <View className="gap-2">
+          <Animated.View entering={FadeIn} className="gap-2">
             <View className="flex-row items-center justify-between">
-              <Text className="text-3xl font-bold text-foreground">Performance Dashboard</Text>
+              <Text className="text-3xl font-bold text-foreground">Performance</Text>
               <View
                 className="px-2 py-1 rounded"
                 style={{
@@ -142,18 +173,34 @@ export default function PerformanceDashboardLive() {
               </View>
             </View>
             <Text className="text-sm text-muted">
-              {isConnected ? 'Real-time API performance monitoring' : 'Offline mode - last update: ' + (lastUpdate ? lastUpdate.toLocaleTimeString() : 'never')}
+              {isConnected ? 'Real-time API monitoring' : 'Offline - last update: ' + (lastUpdate ? lastUpdate.toLocaleTimeString() : 'never')}
             </Text>
             {error && <Text className="text-xs text-error mt-1">{error}</Text>}
-          </View>
+          </Animated.View>
+
+          {/* Refresh Button */}
+          <TouchableOpacity
+            onPress={handleManualRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 rounded-lg items-center"
+            style={{
+              backgroundColor: colors.primary,
+              opacity: refreshing ? 0.6 : 1,
+            }}
+          >
+            <Text className="text-background font-semibold">
+              {refreshing ? '⟳ Refreshing...' : '⟳ Manual Refresh'}
+            </Text>
+          </TouchableOpacity>
 
           {/* Alerts Section */}
           {alerts.length > 0 && (
-            <View className="gap-3">
+            <Animated.View entering={SlideInRight} className="gap-3">
               <Text className="text-lg font-semibold text-foreground">⚠️ Active Alerts ({alerts.length})</Text>
               {alerts.map((alert, idx) => (
-                <View
+                <Animated.View
                   key={idx}
+                  entering={FadeIn.delay(idx * 100)}
                   className="p-4 rounded-lg border"
                   style={{
                     borderColor: getSeverityColor(alert.severity),
@@ -177,9 +224,9 @@ export default function PerformanceDashboardLive() {
                       {alert.metric}: {alert.degradationPercent.toFixed(1)}% degradation
                     </Text>
                   </View>
-                </View>
+                </Animated.View>
               ))}
-            </View>
+            </Animated.View>
           )}
 
           {/* Metrics Section */}
@@ -198,204 +245,71 @@ export default function PerformanceDashboardLive() {
               </View>
             ) : (
               metrics.map((metric, idx) => (
-                <Pressable
+                <Animated.View
                   key={idx}
-                  onPress={() => setSelectedEndpoint(selectedEndpoint === metric.endpoint ? null : metric.endpoint)}
+                  entering={FadeIn.delay(idx * 50)}
+                  className="p-4 rounded-lg border"
+                  style={{
+                    borderColor: colors.border,
+                    backgroundColor: colors.surface,
+                  }}
                 >
-                  <View
-                    className="p-4 rounded-lg border border-border"
-                    style={{ backgroundColor: colors.surface }}
-                  >
+                  <TouchableOpacity onPress={() => setSelectedEndpoint(selectedEndpoint === metric.endpoint ? null : metric.endpoint)}>
                     <View className="gap-3">
-                      {/* Header */}
                       <View className="flex-row items-center justify-between">
                         <View className="flex-1">
                           <Text className="font-semibold text-foreground">{metric.endpoint}</Text>
-                          <Text className="text-xs text-muted mt-1">
-                            {metric.avgResponseTime.toFixed(0)}ms avg • {(metric.errorRate * 100).toFixed(2)}% errors
-                          </Text>
+                          <Text className="text-xs text-muted mt-1">{getTrendIcon(metric.trend)} {metric.trend}</Text>
                         </View>
-                        <Text className="text-2xl">{getTrendIcon(metric.trend)}</Text>
-                      </View>
-
-                      {/* Performance Bars */}
-                      <View className="gap-2">
-                        <View className="gap-1">
-                          <View className="flex-row items-center justify-between">
-                            <Text className="text-xs text-muted">P50</Text>
-                            <Text className="text-xs font-semibold text-foreground">
-                              {metric.avgResponseTime.toFixed(0)}ms
-                            </Text>
-                          </View>
-                          <View
-                            className="h-2 rounded-full"
-                            style={{
-                              backgroundColor: colors.border,
-                              width: `${Math.min((metric.avgResponseTime / 500) * 100, 100)}%`,
-                            }}
-                          />
-                        </View>
-
-                        <View className="gap-1">
-                          <View className="flex-row items-center justify-between">
-                            <Text className="text-xs text-muted">P95</Text>
-                            <Text className="text-xs font-semibold text-foreground">
-                              {metric.p95ResponseTime.toFixed(0)}ms
-                            </Text>
-                          </View>
-                          <View
-                            className="h-2 rounded-full"
-                            style={{
-                              backgroundColor: colors.warning,
-                              width: `${Math.min((metric.p95ResponseTime / 500) * 100, 100)}%`,
-                            }}
-                          />
-                        </View>
-
-                        <View className="gap-1">
-                          <View className="flex-row items-center justify-between">
-                            <Text className="text-xs text-muted">P99</Text>
-                            <Text className="text-xs font-semibold text-foreground">
-                              {metric.p99ResponseTime.toFixed(0)}ms
-                            </Text>
-                          </View>
-                          <View
-                            className="h-2 rounded-full"
-                            style={{
-                              backgroundColor: colors.error,
-                              width: `${Math.min((metric.p99ResponseTime / 500) * 100, 100)}%`,
-                            }}
-                          />
+                        <View className="items-end">
+                          <Text className="text-lg font-bold text-primary">{metric.avgResponseTime}ms</Text>
+                          <Text className="text-xs text-muted">avg response</Text>
                         </View>
                       </View>
 
-                      {/* Expanded Details */}
                       {selectedEndpoint === metric.endpoint && (
-                        <View className="pt-3 border-t border-border gap-2">
+                        <Animated.View entering={FadeIn} className="gap-2 pt-3 border-t" style={{ borderTopColor: colors.border }}>
                           <View className="flex-row justify-between">
-                            <Text className="text-xs text-muted">Error Rate</Text>
-                            <Text className="text-xs font-semibold text-foreground">
-                              {(metric.errorRate * 100).toFixed(2)}%
-                            </Text>
+                            <View>
+                              <Text className="text-xs text-muted">P95</Text>
+                              <Text className="font-semibold text-foreground">{metric.p95ResponseTime}ms</Text>
+                            </View>
+                            <View>
+                              <Text className="text-xs text-muted">P99</Text>
+                              <Text className="font-semibold text-foreground">{metric.p99ResponseTime}ms</Text>
+                            </View>
+                            <View>
+                              <Text className="text-xs text-muted">Error Rate</Text>
+                              <Text className="font-semibold text-foreground">{(metric.errorRate * 100).toFixed(2)}%</Text>
+                            </View>
                           </View>
-                          <View className="flex-row justify-between">
-                            <Text className="text-xs text-muted">Trend</Text>
-                            <Text className="text-xs font-semibold text-foreground capitalize">
-                              {metric.trend}
-                            </Text>
-                          </View>
-                        </View>
+                        </Animated.View>
                       )}
                     </View>
-                  </View>
-                </Pressable>
+                  </TouchableOpacity>
+                </Animated.View>
               ))
             )}
           </View>
 
-          {/* Summary Stats */}
-          {metrics.length > 0 && (
-            <View className="gap-3">
-              <Text className="text-lg font-semibold text-foreground">📈 Summary</Text>
-              <View className="flex-row gap-3">
-                <View
-                  className="flex-1 p-4 rounded-lg"
-                  style={{ backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }}
-                >
-                  <Text className="text-xs text-muted mb-1">Avg Response Time</Text>
-                  <Text className="text-xl font-bold text-foreground">
-                    {Math.round(metrics.reduce((a, b) => a + b.avgResponseTime, 0) / metrics.length)}ms
-                  </Text>
-                </View>
-                <View
-                  className="flex-1 p-4 rounded-lg"
-                  style={{ backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }}
-                >
-                  <Text className="text-xs text-muted mb-1">Error Rate</Text>
-                  <Text className="text-xl font-bold text-foreground">
-                    {(
-                      (metrics.reduce((a, b) => a + b.errorRate, 0) / metrics.length) *
-                      100
-                    ).toFixed(2)}%
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
           {/* Export Section */}
-          <View className="gap-3">
-            <Text className="text-lg font-semibold text-foreground">📥 Export Report</Text>
+          <View className="gap-2">
+            <Text className="text-sm font-semibold text-foreground">Export Report</Text>
             <View className="flex-row gap-2">
-              <Pressable
-                onPress={() => handleExport('csv')}
-                disabled={isExporting}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  borderRadius: 6,
-                  backgroundColor: colors.primary,
-                  opacity: isExporting ? 0.6 : 1,
-                }}
-              >
-                <Text
+              {(['csv', 'json', 'html'] as const).map(format => (
+                <TouchableOpacity
+                  key={format}
+                  onPress={() => handleExport(format)}
+                  disabled={isExporting || metrics.length === 0}
+                  className="flex-1 py-2 rounded-lg items-center"
                   style={{
-                    color: colors.background,
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    fontSize: 12,
+                    backgroundColor: colors.primary,
+                    opacity: isExporting || metrics.length === 0 ? 0.5 : 1,
                   }}
                 >
-                  CSV
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleExport('json')}
-                disabled={isExporting}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  borderRadius: 6,
-                  backgroundColor: colors.primary,
-                  opacity: isExporting ? 0.6 : 1,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.background,
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    fontSize: 12,
-                  }}
-                >
-                  JSON
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleExport('html')}
-                disabled={isExporting}
-                style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 12,
-                  borderRadius: 6,
-                  backgroundColor: colors.primary,
-                  opacity: isExporting ? 0.6 : 1,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.background,
-                    textAlign: 'center',
-                    fontWeight: '600',
-                    fontSize: 12,
-                  }}
-                >
-                  HTML
-                </Text>
-              </Pressable>
+                  <Text className="text-background font-semibold text-sm">{format.toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </View>

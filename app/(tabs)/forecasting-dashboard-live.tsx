@@ -1,14 +1,15 @@
-import { ScrollView, Text, View, Pressable, ActivityIndicator } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, RefreshControl } from 'react-native';
 import { useState } from 'react';
 import { ScreenContainer } from '@/components/screen-container';
 import { useWebSocket, type WebSocketMessage } from '@/hooks/use-websocket';
-import { cn } from '@/lib/utils';
 import { useColors } from '@/hooks/use-colors';
 import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
   useSharedValue,
+  FadeIn,
+  SlideInRight,
 } from 'react-native-reanimated';
 
 interface Forecast {
@@ -31,6 +32,8 @@ export default function ForecastingDashboardLive() {
   });
   const [loading, setLoading] = useState(true);
   const [selectedConfidence, setSelectedConfidence] = useState<'low' | 'mid' | 'high'>('mid');
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   // Animation values
   const opacityAnim = useSharedValue(0);
@@ -41,7 +44,7 @@ export default function ForecastingDashboardLive() {
     transform: [{ scale: scaleAnim.value }],
   }));
 
-  const { isConnected } = useWebSocket(
+  const { isConnected, subscribe } = useWebSocket(
     ['forecast'],
     (message: WebSocketMessage) => {
       if (message.type === 'forecast') {
@@ -56,6 +59,7 @@ export default function ForecastingDashboardLive() {
         setForecasts(forecasts);
         setTrend(trend as any);
         setLoading(false);
+        setLastUpdate(new Date());
 
         // Trigger animation
         opacityAnim.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) });
@@ -63,6 +67,20 @@ export default function ForecastingDashboardLive() {
       }
     }
   );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (subscribe) {
+        subscribe(['forecast']);
+      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error('Refresh error:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getConfidenceRange = (forecast: Forecast) => {
     const range = forecast.upper - forecast.lower;
@@ -79,181 +97,170 @@ export default function ForecastingDashboardLive() {
   const minValue = Math.min(...forecasts.map(f => f.lower), 0);
   const range = maxValue - minValue;
 
-  const getBarHeight = (value: number) => {
-    return ((value - minValue) / range) * 200;
-  };
-
   return (
-    <ScreenContainer className="p-4">
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="gap-6">
+    <ScreenContainer className="p-0">
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        <View className="p-4 gap-6">
           {/* Header */}
-          <View className="gap-2">
-            <Text className="text-3xl font-bold text-foreground">Forecasting</Text>
+          <Animated.View entering={FadeIn} className="gap-2">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-3xl font-bold text-foreground">Forecasting</Text>
+              <View
+                className="px-2 py-1 rounded"
+                style={{
+                  backgroundColor: isConnected ? colors.success : colors.error,
+                }}
+              >
+                <Text className="text-xs font-bold text-background">
+                  {isConnected ? '🔴 LIVE' : '⚪ OFFLINE'}
+                </Text>
+              </View>
+            </View>
             <Text className="text-sm text-muted">
-              {isConnected ? '🟢 Live Updates' : '🔴 Offline'}
+              {isConnected ? '7-day usage forecast' : 'Offline - last update: ' + (lastUpdate ? lastUpdate.toLocaleTimeString() : 'never')}
             </Text>
-          </View>
+          </Animated.View>
 
-          {/* Confidence Level Selector */}
-          <View className="gap-3">
+          {/* Refresh Button */}
+          <TouchableOpacity
+            onPress={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 rounded-lg items-center"
+            style={{
+              backgroundColor: colors.primary,
+              opacity: refreshing ? 0.6 : 1,
+            }}
+          >
+            <Text className="text-background font-semibold">
+              {refreshing ? '⟳ Refreshing...' : '⟳ Manual Refresh'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Confidence Level Filter */}
+          <View className="gap-2">
             <Text className="text-sm font-semibold text-foreground">Confidence Level</Text>
             <View className="flex-row gap-2">
               {(['low', 'mid', 'high'] as const).map(level => (
-                <Pressable
+                <TouchableOpacity
                   key={level}
                   onPress={() => setSelectedConfidence(level)}
-                  style={({ pressed }) => [
-                    {
-                      transform: [{ scale: pressed ? 0.97 : 1 }],
-                    },
-                  ]}
-                  className={cn(
-                    'flex-1 py-2 px-3 rounded-lg border',
-                    selectedConfidence === level
-                      ? 'bg-primary border-primary'
-                      : 'bg-surface border-border'
-                  )}
+                  className="flex-1 py-2 rounded-lg items-center"
+                  style={{
+                    backgroundColor: selectedConfidence === level ? colors.primary : colors.surface,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  }}
                 >
                   <Text
-                    className={cn(
-                      'text-center text-sm font-medium capitalize',
-                      selectedConfidence === level ? 'text-background' : 'text-foreground'
-                    )}
+                    className="font-semibold text-sm"
+                    style={{
+                      color: selectedConfidence === level ? colors.background : colors.foreground,
+                    }}
                   >
-                    {level}
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Trend Metrics */}
-          <View className="gap-3">
-            <Text className="text-sm font-semibold text-foreground">Trend Analysis</Text>
-            <View className="gap-3">
-              <View className="flex-row gap-3">
-                <View className="flex-1 bg-surface rounded-lg p-4">
-                  <Text className="text-xs text-muted mb-1">Growth Rate</Text>
-                  <Text className={cn(
-                    'text-lg font-bold',
-                    trend.growthRate > 0 ? 'text-success' : 'text-error'
-                  )}>
-                    {trend.growthRate > 0 ? '+' : ''}{(trend.growthRate * 100).toFixed(1)}%
-                  </Text>
+          {/* Trend Summary */}
+          {!loading && forecasts.length > 0 && (
+            <Animated.View entering={SlideInRight} className="gap-2">
+              <Text className="text-sm font-semibold text-foreground">Trend Analysis</Text>
+              <View className="flex-row gap-2">
+                <View className="flex-1 p-3 rounded-lg" style={{ backgroundColor: colors.surface }}>
+                  <Text className="text-xs text-muted">Growth Rate</Text>
+                  <Text className="text-lg font-bold text-primary">{trend.growthRate.toFixed(2)}%</Text>
                 </View>
-                <View className="flex-1 bg-surface rounded-lg p-4">
-                  <Text className="text-xs text-muted mb-1">Volatility</Text>
-                  <Text className="text-lg font-bold text-warning">
-                    {(trend.volatility * 100).toFixed(1)}%
-                  </Text>
+                <View className="flex-1 p-3 rounded-lg" style={{ backgroundColor: colors.surface }}>
+                  <Text className="text-xs text-muted">Volatility</Text>
+                  <Text className="text-lg font-bold text-primary">{(trend.volatility * 100).toFixed(1)}%</Text>
                 </View>
               </View>
-              <View className="flex-row gap-3">
-                <View className="flex-1 bg-surface rounded-lg p-4">
-                  <Text className="text-xs text-muted mb-1">Seasonality</Text>
-                  <Text className="text-lg font-bold text-primary">
-                    {(trend.seasonality * 100).toFixed(1)}%
-                  </Text>
-                </View>
-                <View className="flex-1 bg-surface rounded-lg p-4">
-                  <Text className="text-xs text-muted mb-1">Slope</Text>
-                  <Text className="text-lg font-bold text-foreground">
-                    {trend.slope.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
+            </Animated.View>
+          )}
 
-          {/* Forecast Chart */}
+          {/* Forecasts */}
           <View className="gap-3">
-            <Text className="text-sm font-semibold text-foreground">7-Day Forecast</Text>
+            <Text className="text-lg font-semibold text-foreground">
+              📊 7-Day Forecast ({forecasts.length} days)
+            </Text>
             {loading ? (
-              <View className="items-center justify-center py-8">
-                <ActivityIndicator size="large" color={colors.primary} />
+              <View
+                className="p-6 rounded-lg items-center justify-center"
+                style={{ backgroundColor: colors.surface }}
+              >
+                <Text className="text-muted">Loading forecast data...</Text>
+              </View>
+            ) : forecasts.length === 0 ? (
+              <View
+                className="p-6 rounded-lg items-center justify-center"
+                style={{ backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }}
+              >
+                <Text className="text-muted text-center">
+                  {isConnected ? 'Waiting for forecast...' : 'Offline - no forecast data'}
+                </Text>
               </View>
             ) : (
-              <Animated.View style={animatedStyle} className="bg-surface rounded-lg p-4">
-                <View className="flex-row items-flex-end justify-between gap-2 h-64">
-                  {forecasts.slice(0, 7).map((forecast, idx) => {
-                    const range = getConfidenceRange(forecast);
-                    const barHeight = getBarHeight(forecast.predicted);
-                    const upperHeight = getBarHeight(range.upper);
-                    const lowerHeight = getBarHeight(range.lower);
+              forecasts.map((forecast, idx) => {
+                const confRange = getConfidenceRange(forecast);
+                const barHeight = ((forecast.predicted - minValue) / range) * 100;
+                const confidencePercent = Math.round(forecast.confidence * 100);
 
-                    return (
-                      <View key={idx} className="flex-1 items-center gap-2">
-                        {/* Confidence Interval */}
-                        <View className="w-1 rounded-full" style={{
-                          height: Math.max(upperHeight - lowerHeight, 1),
-                          backgroundColor: colors.primary,
-                          opacity: 0.3,
-                          marginTop: Math.max(200 - upperHeight, 0),
-                        }} />
+                return (
+                  <Animated.View
+                    key={idx}
+                    entering={FadeIn.delay(idx * 50)}
+                    className="p-4 rounded-lg"
+                    style={{ backgroundColor: colors.surface }}
+                  >
+                    <View className="gap-3">
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-1">
+                          <Text className="font-semibold text-foreground">{forecast.date}</Text>
+                          <Text className="text-xs text-muted mt-1">Confidence: {confidencePercent}%</Text>
+                        </View>
+                        <View className="items-end">
+                          <Text className="text-lg font-bold text-primary">{forecast.predicted}</Text>
+                          <Text className="text-xs text-muted">predicted</Text>
+                        </View>
+                      </View>
 
-                        {/* Predicted Value Bar */}
-                        <View className="w-full items-center">
+                      {/* Confidence Interval Bar */}
+                      <View className="gap-1">
+                        <View className="h-8 rounded bg-opacity-20" style={{ backgroundColor: colors.primary }}>
                           <View
-                            className="rounded-t-lg w-3/4"
+                            className="h-full rounded flex-row items-center justify-center"
                             style={{
-                              height: Math.max(barHeight, 2),
+                              width: `${Math.max(barHeight, 5)}%`,
                               backgroundColor: colors.primary,
                             }}
-                          />
+                          >
+                            {barHeight > 15 && (
+                              <Text className="text-xs font-bold text-background">{forecast.predicted}</Text>
+                            )}
+                          </View>
                         </View>
-
-                        {/* Label */}
-                        <Text className="text-xs text-muted text-center">
-                          {forecast.date}
-                        </Text>
+                        <View className="flex-row justify-between text-xs text-muted">
+                          <Text className="text-xs text-muted">{confRange.lower.toFixed(0)}</Text>
+                          <Text className="text-xs text-muted">{confRange.upper.toFixed(0)}</Text>
+                        </View>
                       </View>
-                    );
-                  })}
-                </View>
-
-                {/* Legend */}
-                <View className="flex-row gap-4 mt-4 pt-4 border-t border-border">
-                  <View className="flex-row items-center gap-2">
-                    <View className="w-3 h-3 rounded-full bg-primary" />
-                    <Text className="text-xs text-muted">Predicted</Text>
-                  </View>
-                  <View className="flex-row items-center gap-2">
-                    <View className="w-3 h-3 rounded-full bg-primary opacity-30" />
-                    <Text className="text-xs text-muted">Confidence</Text>
-                  </View>
-                </View>
-              </Animated.View>
+                    </View>
+                  </Animated.View>
+                );
+              })
             )}
-          </View>
-
-          {/* Forecast Details */}
-          <View className="gap-3">
-            <Text className="text-sm font-semibold text-foreground">Forecast Details</Text>
-            {forecasts.slice(0, 7).map((forecast, idx) => (
-              <View key={idx} className="bg-surface rounded-lg p-4">
-                <View className="flex-row justify-between items-start mb-2">
-                  <Text className="font-semibold text-foreground">{forecast.date}</Text>
-                  <Text className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    {(forecast.confidence * 100).toFixed(0)}% confidence
-                  </Text>
-                </View>
-                <View className="flex-row justify-between text-sm">
-                  <View>
-                    <Text className="text-xs text-muted">Predicted</Text>
-                    <Text className="font-semibold text-foreground">
-                      {forecast.predicted.toFixed(0)} visits
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="text-xs text-muted">Range</Text>
-                    <Text className="font-semibold text-foreground">
-                      {forecast.lower.toFixed(0)} - {forecast.upper.toFixed(0)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
           </View>
         </View>
       </ScrollView>

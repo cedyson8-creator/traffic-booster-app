@@ -64,21 +64,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="performance-dashboard"
+        name="performance-dashboard-live"
         options={{
           title: "Performance",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="forecasting-viz"
+        name="forecasting-dashboard-live"
         options={{
           title: "Forecast",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="optimization-ui"
+        name="optimization-dashboard-live"
         options={{
           title: "Optimize",
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="wand.and.stars" color={color} />,
