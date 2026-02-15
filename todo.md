@@ -635,3 +635,17 @@
 - [ ] Test tab navigation
 - [ ] Test WebSocket updates
 - [ ] Test export functionality
+
+## WebSocket Real-Time Integration (NEW)
+- [x] Create performance metrics event emitter service
+- [x] Create forecasting data event emitter service
+- [x] Create optimization recommendations event emitter service
+- [x] Create event aggregator service to connect emitters to WebSocket
+- [x] Wire WebSocket service to backend server initialization
+- [x] Create useWebSocket client hook for real-time updates
+- [x] Create performance dashboard with live WebSocket updates
+- [ ] Create forecasting dashboard with live WebSocket updates
+- [ ] Create optimization dashboard with live WebSocket updates
+- [x] Write integration tests for WebSocket service
+- [x] Write integration tests for event emitters
+- [ ] Test real-time updates end-to-end on mobile and web

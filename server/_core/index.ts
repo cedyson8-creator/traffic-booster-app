@@ -12,6 +12,8 @@ import webhooksRoutes from "../routes/webhooks.routes";
 import paymentRoutes from "../routes/payments.routes";
 import socialMediaRoutes from "../routes/social-media.routes";
 import { ReportSchedulerService } from "../services/report-scheduler.service";
+import { WebSocketService } from "../services/websocket.service";
+import { EventAggregatorService } from "../services/event-aggregator.service";
 import { globalRateLimiter, endpointRateLimiter, paymentRateLimiter, exportRateLimiter, emailRateLimiter } from "../middleware/rate-limit.middleware";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -103,6 +105,18 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`[api] server listening on port ${port}`);
+    
+    // Initialize WebSocket service
+    const wsService = WebSocketService.getInstance();
+    wsService.initialize(server);
+    
+    // Initialize event aggregator
+    const eventAggregator = EventAggregatorService.getInstance(wsService);
+    eventAggregator.initialize();
+    eventAggregator.startAll();
+    
+    console.log('[api] WebSocket and event aggregator initialized');
+    
     // Start the report scheduler for sending scheduled emails
     ReportSchedulerService.start();
   });
@@ -111,6 +125,19 @@ async function startServer() {
   process.on('SIGTERM', () => {
     console.log('[api] SIGTERM received, shutting down gracefully');
     ReportSchedulerService.stop();
+    
+    // Stop event aggregator
+    try {
+      const eventAggregator = EventAggregatorService.getInstance();
+      eventAggregator.stopAll();
+    } catch (error) {
+      console.log('[api] Event aggregator not initialized');
+    }
+    
+    // Close WebSocket
+    const wsService = WebSocketService.getInstance();
+    wsService.close();
+    
     server.close(() => {
       console.log('[api] Server closed');
       process.exit(0);
