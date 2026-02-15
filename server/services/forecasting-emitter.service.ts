@@ -5,6 +5,7 @@ export interface Forecast {
   predicted: number;
   lower: number;
   upper: number;
+  confidence: number;
 }
 
 export interface TrendData {
@@ -107,11 +108,15 @@ export class ForecastingEmitterService extends EventEmitter {
       const lower = Math.round(predicted - confidenceMargin);
       const upper = Math.round(predicted + confidenceMargin);
 
+      // Calculate confidence (decreases with days ahead)
+      const confidence = Math.max(0.5, 1 - (i / daysAhead) * 0.5);
+
       forecasts.push({
         date: dayLabel,
         predicted,
         lower,
         upper,
+        confidence,
       });
     }
 
@@ -205,11 +210,15 @@ export class ForecastingEmitterService extends EventEmitter {
       const lower = Math.round(predicted - confidenceMargin);
       const upper = Math.round(predicted + confidenceMargin);
 
+      // Calculate confidence (decreases with days ahead)
+      const confidence = Math.max(0.5, 1 - (i / daysAhead) * 0.5);
+
       forecasts.push({
         date: dayLabel,
         predicted,
         lower,
         upper,
+        confidence,
       });
     }
 

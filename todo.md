@@ -644,11 +644,18 @@
 - [x] Wire WebSocket service to backend server initialization
 - [x] Create useWebSocket client hook for real-time updates
 - [x] Create performance dashboard with live WebSocket updates
-- [ ] Create forecasting dashboard with live WebSocket updates
-- [ ] Create optimization dashboard with live WebSocket updates
+- [x] Create forecasting dashboard with live WebSocket updates
+- [x] Create optimization dashboard with live WebSocket updates
 - [x] Write integration tests for WebSocket service
 - [x] Write integration tests for event emitters
 - [ ] Test real-time updates end-to-end on mobile and web
 
 ## Bug Fixes
 - [x] Fix WebSocket import error (ws module CommonJS/ESM compatibility)
+
+## Live Dashboards with Animations (COMPLETED)
+- [x] Create forecasting live dashboard with confidence intervals
+- [x] Create optimization live dashboard with priority filtering
+- [x] Add animated real-time charts to all dashboards
+- [x] Enable WebSocket on production server (already enabled)
+- [x] Write integration tests for new features (17 tests passing)
