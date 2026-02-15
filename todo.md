@@ -700,3 +700,11 @@
 - [ ] Wire push notifications to backend notification events
 - [ ] Test email delivery with real SMTP provider
 - [ ] Test push notifications on iOS and Android devices
+
+
+## Notification System (NEW)
+- [x] Create API routes for email and push services
+- [x] Build notification preferences UI screen
+- [x] Implement notification history UI screen with filtering
+- [x] Write 33 integration tests for notification routes
+- [ ] Add notification preferences and history tabs to tab bar
