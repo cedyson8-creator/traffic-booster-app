@@ -43,13 +43,28 @@ export class EmailService {
    */
   private initializeTransporter(): void {
     try {
-      // Use environment variables for email configuration
+      // Check for SendGrid API key first (highest priority)
+      const sendgridApiKey = process.env.SENDGRID_API_KEY;
+      if (sendgridApiKey) {
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.sendgrid.net',
+          port: 587,
+          auth: {
+            user: 'apikey',
+            pass: sendgridApiKey,
+          },
+        });
+        this.isConfigured = true;
+        console.log('[EmailService] Initialized with SendGrid provider (API key)');
+        return;
+      }
+
+      // Fall back to standard SMTP configuration
       const emailProvider = process.env.EMAIL_PROVIDER || 'smtp';
       const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
       const emailPort = parseInt(process.env.EMAIL_PORT || '587');
       const emailUser = process.env.EMAIL_USER;
       const emailPassword = process.env.EMAIL_PASSWORD;
-      const emailFrom = process.env.EMAIL_FROM || emailUser || 'noreply@trafficbooster.app';
 
       if (!emailUser || !emailPassword) {
         console.warn('[EmailService] Email credentials not configured. Using mock transporter.');
@@ -59,7 +74,6 @@ export class EmailService {
       }
 
       if (emailProvider === 'sendgrid') {
-        // SendGrid configuration
         this.transporter = nodemailer.createTransport({
           host: 'smtp.sendgrid.net',
           port: 587,
@@ -69,7 +83,6 @@ export class EmailService {
           },
         });
       } else {
-        // Standard SMTP configuration
         this.transporter = nodemailer.createTransport({
           host: emailHost,
           port: emailPort,
@@ -158,24 +171,15 @@ export class EmailService {
     reportContent: Buffer | string,
     contentType: string
   ): Promise<SendResult> {
-    const subject = `Your ${format.toUpperCase()} Export: ${reportName}`;
-    const html = `
-      <h2>Your Export is Ready</h2>
-      <p>Hello,</p>
-      <p>Your ${format.toUpperCase()} export <strong>${reportName}</strong> is ready for download.</p>
-      <p>The file is attached to this email.</p>
-      <p>Best regards,<br>Traffic Booster Pro Team</p>
-    `;
-
     return this.sendEmail({
       to: email,
-      subject,
-      html,
+      subject: `Your ${format.toUpperCase()} Export: ${reportName}`,
+      html: `<p>Your ${format.toUpperCase()} export is ready for download.</p>`,
       attachments: [
         {
           filename: `${reportName}.${format}`,
           content: reportContent,
-          contentType,
+          contentType: contentType,
         },
       ],
     });
@@ -184,110 +188,85 @@ export class EmailService {
   /**
    * Send performance alert email
    */
-  async sendPerformanceAlert(
-    email: string,
-    endpoint: string,
-    metric: string,
-    degradationPercent: number
-  ): Promise<SendResult> {
-    const subject = `Performance Alert: ${endpoint}`;
-    const html = `
-      <h2>Performance Degradation Detected</h2>
-      <p>Hello,</p>
-      <p>We detected a performance issue on your endpoint:</p>
-      <ul>
-        <li><strong>Endpoint:</strong> ${endpoint}</li>
-        <li><strong>Metric:</strong> ${metric}</li>
-        <li><strong>Degradation:</strong> ${degradationPercent}%</li>
-      </ul>
-      <p>Please investigate and take corrective action.</p>
-      <p>Best regards,<br>Traffic Booster Pro Team</p>
-    `;
-
+  async sendPerformanceAlert(data: {
+    email: string;
+    metric: string;
+    value: number;
+    threshold: number;
+    timestamp: string;
+  }): Promise<SendResult> {
     return this.sendEmail({
-      to: email,
-      subject,
-      html,
+      to: data.email,
+      subject: `Performance Alert: ${data.metric}`,
+      html: `
+        <h2>Performance Alert</h2>
+        <p>Metric: <strong>${data.metric}</strong></p>
+        <p>Current Value: <strong>${data.value}</strong></p>
+        <p>Threshold: <strong>${data.threshold}</strong></p>
+        <p>Time: ${new Date(data.timestamp).toLocaleString()}</p>
+      `,
     });
   }
 
   /**
    * Send forecast warning email
    */
-  async sendForecastWarning(
-    email: string,
-    predicted: number,
-    threshold: number
-  ): Promise<SendResult> {
-    const subject = 'Forecast Warning: Threshold Exceeded';
-    const html = `
-      <h2>Forecast Warning</h2>
-      <p>Hello,</p>
-      <p>Our forecast predicts that usage will exceed your threshold:</p>
-      <ul>
-        <li><strong>Predicted Usage:</strong> ${predicted}</li>
-        <li><strong>Threshold:</strong> ${threshold}</li>
-        <li><strong>Excess:</strong> ${predicted - threshold}</li>
-      </ul>
-      <p>Consider scaling your infrastructure or adjusting your limits.</p>
-      <p>Best regards,<br>Traffic Booster Pro Team</p>
-    `;
-
+  async sendForecastWarning(data: {
+    email: string;
+    metric: string;
+    forecastedValue: number;
+    threshold: number;
+    confidence: number;
+    timestamp: string;
+  }): Promise<SendResult> {
     return this.sendEmail({
-      to: email,
-      subject,
-      html,
+      to: data.email,
+      subject: `Forecast Warning: ${data.metric}`,
+      html: `
+        <h2>Forecast Warning</h2>
+        <p>Metric: <strong>${data.metric}</strong></p>
+        <p>Forecasted Value: <strong>${data.forecastedValue}</strong></p>
+        <p>Threshold: <strong>${data.threshold}</strong></p>
+        <p>Confidence: <strong>${(data.confidence * 100).toFixed(1)}%</strong></p>
+        <p>Time: ${new Date(data.timestamp).toLocaleString()}</p>
+      `,
     });
   }
 
   /**
    * Send optimization recommendation email
    */
-  async sendOptimizationRecommendation(
-    email: string,
-    type: string,
-    savings: number,
-    description: string
-  ): Promise<SendResult> {
-    const subject = `Optimization Opportunity: ${type}`;
-    const html = `
-      <h2>New Optimization Recommendation</h2>
-      <p>Hello,</p>
-      <p>We found an optimization opportunity for your infrastructure:</p>
-      <ul>
-        <li><strong>Type:</strong> ${type}</li>
-        <li><strong>Estimated Savings:</strong> $${savings}</li>
-        <li><strong>Description:</strong> ${description}</li>
-      </ul>
-      <p>Log in to your dashboard to review and implement this recommendation.</p>
-      <p>Best regards,<br>Traffic Booster Pro Team</p>
-    `;
-
+  async sendOptimizationRecommendation(data: {
+    email: string;
+    recommendation: string;
+    potentialSavings: string;
+    priority: string;
+    timestamp: string;
+  }): Promise<SendResult> {
     return this.sendEmail({
-      to: email,
-      subject,
-      html,
+      to: data.email,
+      subject: `Optimization Opportunity: ${data.recommendation}`,
+      html: `
+        <h2>Optimization Recommendation</h2>
+        <p>Recommendation: <strong>${data.recommendation}</strong></p>
+        <p>Potential Savings: <strong>${data.potentialSavings}</strong></p>
+        <p>Priority: <strong>${data.priority.toUpperCase()}</strong></p>
+        <p>Time: ${new Date(data.timestamp).toLocaleString()}</p>
+      `,
     });
   }
 
   /**
-   * Send test email
+   * Send scheduled report email
    */
-  async sendTestEmail(email: string): Promise<SendResult> {
-    const subject = 'Test Email from Traffic Booster Pro';
-    const html = `
-      <h2>Test Email</h2>
-      <p>Hello,</p>
-      <p>This is a test email from Traffic Booster Pro.</p>
-      <p>If you received this email, your email configuration is working correctly.</p>
-      <p>Best regards,<br>Traffic Booster Pro Team</p>
-    `;
-
-    return this.sendEmail({
-      to: email,
-      subject,
-      html,
-    });
+  async sendScheduledReport(data: {
+    email: string;
+    reportName: string;
+    format: string;
+    reportContent: Buffer | string;
+    contentType: string;
+  }): Promise<SendResult> {
+    return this.sendExportReport(data.email, data.format, data.reportName, data.reportContent, data.contentType);
   }
 
   /**
@@ -295,20 +274,5 @@ export class EmailService {
    */
   isEmailConfigured(): boolean {
     return this.isConfigured;
-  }
-
-  /**
-   * Get email service status
-   */
-  getStatus(): {
-    configured: boolean;
-    provider: string;
-    email: string | undefined;
-  } {
-    return {
-      configured: this.isConfigured,
-      provider: process.env.EMAIL_PROVIDER || 'smtp',
-      email: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    };
   }
 }

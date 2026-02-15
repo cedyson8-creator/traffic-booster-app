@@ -14,9 +14,8 @@ describe('Email Service', () => {
   });
 
   it('should get email service status', () => {
-    const status = emailService.getStatus();
-    expect(status.configured).toBeDefined();
-    expect(status.provider).toBeDefined();
+    const configured = emailService.isEmailConfigured();
+    expect(typeof configured).toBe('boolean');
   });
 
   it('should send email', async () => {
@@ -42,39 +41,48 @@ describe('Email Service', () => {
   });
 
   it('should send performance alert email', async () => {
-    const result = await emailService.sendPerformanceAlert(
-      'test@example.com',
-      '/api/users',
-      'responseTime',
-      35
-    );
+    const result = await emailService.sendPerformanceAlert({
+      email: 'test@example.com',
+      metric: '/api/users',
+      value: 35,
+      threshold: 30,
+      timestamp: new Date().toISOString(),
+    });
 
     expect(result.success).toBe(true);
   });
 
   it('should send forecast warning email', async () => {
-    const result = await emailService.sendForecastWarning(
-      'test@example.com',
-      1850,
-      1500
-    );
+    const result = await emailService.sendForecastWarning({
+      email: 'test@example.com',
+      metric: 'traffic_volume',
+      forecastedValue: 1850,
+      threshold: 1500,
+      confidence: 0.92,
+      timestamp: new Date().toISOString(),
+    });
 
     expect(result.success).toBe(true);
   });
 
   it('should send optimization recommendation email', async () => {
-    const result = await emailService.sendOptimizationRecommendation(
-      'test@example.com',
-      'Caching',
-      500,
-      'Implement Redis caching'
-    );
+    const result = await emailService.sendOptimizationRecommendation({
+      email: 'test@example.com',
+      recommendation: 'Implement Redis caching',
+      potentialSavings: '$500',
+      priority: 'high',
+      timestamp: new Date().toISOString(),
+    });
 
     expect(result.success).toBe(true);
   });
 
   it('should send test email', async () => {
-    const result = await emailService.sendTestEmail('test@example.com');
+    const result = await emailService.sendEmail({
+      to: 'test@example.com',
+      subject: 'Test Email',
+      html: '<p>This is a test email</p>',
+    });
     expect(result.success).toBe(true);
   });
 
@@ -305,12 +313,13 @@ describe('Integration Tests', () => {
     const pushService = PushNotificationsService.getInstance();
 
     // Send email
-    const emailResult = await emailService.sendPerformanceAlert(
-      'test@example.com',
-      '/api/users',
-      'responseTime',
-      35
-    );
+    const emailResult = await emailService.sendPerformanceAlert({
+      email: 'test@example.com',
+      metric: '/api/users',
+      value: 35,
+      threshold: 30,
+      timestamp: new Date().toISOString(),
+    });
     expect(emailResult.success).toBe(true);
 
     // Send push notification
@@ -324,7 +333,14 @@ describe('Integration Tests', () => {
     const pushService = PushNotificationsService.getInstance();
 
     // Send email
-    const emailResult = await emailService.sendForecastWarning('test@example.com', 1850, 1500);
+    const emailResult = await emailService.sendForecastWarning({
+      email: 'test@example.com',
+      metric: 'traffic_volume',
+      forecastedValue: 1850,
+      threshold: 1500,
+      confidence: 0.92,
+      timestamp: new Date().toISOString(),
+    });
     expect(emailResult.success).toBe(true);
 
     // Send push notification
@@ -338,12 +354,13 @@ describe('Integration Tests', () => {
     const pushService = PushNotificationsService.getInstance();
 
     // Send email
-    const emailResult = await emailService.sendOptimizationRecommendation(
-      'test@example.com',
-      'Caching',
-      500,
-      'Implement Redis caching'
-    );
+    const emailResult = await emailService.sendOptimizationRecommendation({
+      email: 'test@example.com',
+      recommendation: 'Implement Redis caching',
+      potentialSavings: '$500',
+      priority: 'high',
+      timestamp: new Date().toISOString(),
+    });
     expect(emailResult.success).toBe(true);
 
     // Send push notification

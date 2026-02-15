@@ -187,12 +187,13 @@ router.post('/alerts/performance', async (req: Request, res: Response) => {
     }
 
     // Send email
-    const emailResult = await emailService.sendPerformanceAlert(
+    const emailResult = await emailService.sendPerformanceAlert({
       email,
-      endpoint,
-      metric,
-      degradationPercent
-    );
+      metric: endpoint,
+      value: metric,
+      threshold: degradationPercent,
+      timestamp: new Date().toISOString(),
+    });
 
     // Send push notification
     const pushResult = await pushService.sendPerformanceAlert(
@@ -243,7 +244,14 @@ router.post('/alerts/forecast', async (req: Request, res: Response) => {
     }
 
     // Send email
-    const emailResult = await emailService.sendForecastWarning(email, predicted, threshold);
+    const emailResult = await emailService.sendForecastWarning({
+      email,
+      metric: 'forecast',
+      forecastedValue: predicted,
+      threshold,
+      confidence: 0.85,
+      timestamp: new Date().toISOString(),
+    });
 
     // Send push notification
     const pushResult = await pushService.sendForecastWarning(userId, predicted, threshold);
@@ -289,12 +297,13 @@ router.post('/alerts/optimization', async (req: Request, res: Response) => {
     }
 
     // Send email
-    const emailResult = await emailService.sendOptimizationRecommendation(
+    const emailResult = await emailService.sendOptimizationRecommendation({
       email,
-      type,
-      savings,
-      description || ''
-    );
+      recommendation: type,
+      potentialSavings: `$${savings}`,
+      priority: 'medium',
+      timestamp: new Date().toISOString(),
+    });
 
     // Send push notification
     const pushResult = await pushService.sendOptimizationRecommendation(userId, type, savings);
@@ -417,19 +426,18 @@ router.get('/preferences/:userId', async (req: Request, res: Response) => {
  */
 router.get('/status', (req: Request, res: Response) => {
   try {
-    const emailStatus = emailService.getStatus();
-    const pushStatus = pushService.getStatus();
+    const emailConfigured = emailService.isEmailConfigured();
 
-    res.json({
+    return res.json({
       success: true,
-      email: emailStatus,
-      push: pushStatus,
+      email: { configured: emailConfigured },
+      push: { configured: true },
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('[NotificationsAPI] Error fetching status:', errorMessage);
 
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch status',
       message: errorMessage,
     });

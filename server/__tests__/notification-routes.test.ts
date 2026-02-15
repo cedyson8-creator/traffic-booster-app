@@ -71,33 +71,38 @@ describe('Notification Routes', () => {
     });
 
     it('should send performance alert email', async () => {
-      const result = await emailService.sendPerformanceAlert(
-        'test@example.com',
-        '/api/users',
-        'response_time',
-        25
-      );
+      const result = await emailService.sendPerformanceAlert({
+        email: 'test@example.com',
+        metric: '/api/users',
+        value: 25,
+        threshold: 20,
+        timestamp: new Date().toISOString(),
+      });
 
       expect(result.success).toBe(true);
     });
 
     it('should send forecast warning email', async () => {
-      const result = await emailService.sendForecastWarning(
-        'test@example.com',
-        85,
-        80
-      );
+      const result = await emailService.sendForecastWarning({
+        email: 'test@example.com',
+        metric: 'traffic_volume',
+        forecastedValue: 85,
+        threshold: 80,
+        confidence: 0.92,
+        timestamp: new Date().toISOString(),
+      });
 
       expect(result.success).toBe(true);
     });
 
     it('should send optimization recommendation email', async () => {
-      const result = await emailService.sendOptimizationRecommendation(
-        'test@example.com',
-        'caching',
-        500,
-        'Enable caching'
-      );
+      const result = await emailService.sendOptimizationRecommendation({
+        email: 'test@example.com',
+        recommendation: 'Enable caching',
+        potentialSavings: '30%',
+        priority: 'high',
+        timestamp: new Date().toISOString(),
+      });
 
       expect(result.success).toBe(true);
     });
@@ -436,12 +441,13 @@ describe('Notification Routes', () => {
       });
 
       // Send email
-      const emailResult = await emailService.sendPerformanceAlert(
-        'user@example.com',
-        '/api/users',
-        'response_time',
-        25
-      );
+      const emailResult = await emailService.sendPerformanceAlert({
+        email: 'user@example.com',
+        metric: '/api/users',
+        value: 25,
+        threshold: 20,
+        timestamp: new Date().toISOString(),
+      });
 
       // Send push
       const pushResult = await pushService.sendPerformanceAlert(1, '/api/users', 'response_time', 25);
@@ -476,7 +482,14 @@ describe('Notification Routes', () => {
         minSeverity: 'low',
       });
 
-      const emailResult = await emailService.sendForecastWarning('user@example.com', 85, 80);
+      const emailResult = await emailService.sendForecastWarning({
+        email: 'user@example.com',
+        metric: 'usage',
+        forecastedValue: 85,
+        threshold: 80,
+        confidence: 0.92,
+        timestamp: new Date().toISOString(),
+      });
       const pushResult = await pushService.sendForecastWarning(1, 85, 80);
 
       const notif = notificationsService.createNotification(
@@ -505,12 +518,13 @@ describe('Notification Routes', () => {
         minSeverity: 'low',
       });
 
-      const emailResult = await emailService.sendOptimizationRecommendation(
-        'user@example.com',
-        'caching',
-        500,
-        'Enable caching'
-      );
+      const emailResult = await emailService.sendOptimizationRecommendation({
+        email: 'user@example.com',
+        recommendation: 'Enable caching',
+        potentialSavings: '$500',
+        priority: 'high',
+        timestamp: new Date().toISOString(),
+      });
       const pushResult = await pushService.sendOptimizationRecommendation(1, 'caching', 500);
 
       const notif = notificationsService.createNotification(
