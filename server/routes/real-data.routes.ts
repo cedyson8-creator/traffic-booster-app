@@ -10,7 +10,10 @@ export function createRealDataRoutes(): Router {
    * Get integration status
    */
   router.get('/status', (req, res) => {
-    const status = realDataService.getStatus();
+    const status = {
+      googleAnalyticsConfigured: realDataService.isGoogleAnalyticsConfigured(),
+      metaAdsConfigured: realDataService.isMetaAdsConfigured(),
+    };
     return res.json(status);
   });
 
@@ -26,7 +29,7 @@ export function createRealDataRoutes(): Router {
         return res.status(400).json({ error: 'startDate and endDate are required' });
       }
 
-      const data = await realDataService.fetchGoogleAnalyticsData(
+      const data = await realDataService.fetchGoogleAnalyticsMetrics(
         String(startDate),
         String(endDate)
       );
@@ -54,10 +57,7 @@ export function createRealDataRoutes(): Router {
         return res.status(400).json({ error: 'startDate and endDate are required' });
       }
 
-      const data = await realDataService.fetchMetaCampaignData(
-        String(startDate),
-        String(endDate)
-      );
+      const data = await realDataService.fetchMetaAdsMetrics();
 
       return res.json({
         success: true,
