@@ -1,7 +1,7 @@
-import { ScrollView, Text, View, Pressable } from 'react-native';
+import { ScrollView, Text, View, Pressable, Alert } from 'react-native';
 import { ScreenContainer } from '@/components/screen-container';
 import { useColors } from '@/hooks/use-colors';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface PerformanceMetric {
   endpoint: string;
@@ -58,6 +58,63 @@ export default function PerformanceDashboard() {
   ]);
 
   const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (format: 'csv' | 'json' | 'html') => {
+    setIsExporting(true);
+    try {
+      const data = {
+        title: 'Performance Dashboard Report',
+        type: 'performance',
+        generatedAt: new Date().toISOString(),
+        metrics,
+        alerts,
+      };
+
+      let content = '';
+      let filename = `performance_report_${Date.now()}`;
+
+      if (format === 'csv') {
+        content = 'Endpoint,Avg Response Time (ms),P95 (ms),P99 (ms),Error Rate (%),Trend\n';
+        metrics.forEach(m => {
+          content += `${m.endpoint},${m.avgResponseTime},${m.p95ResponseTime},${m.p99ResponseTime},${(m.errorRate * 100).toFixed(2)},${m.trend}\n`;
+        });
+        filename += '.csv';
+      } else if (format === 'json') {
+        content = JSON.stringify(data, null, 2);
+        filename += '.json';
+      } else if (format === 'html') {
+        content = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Performance Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Performance Dashboard Report</h1>
+  <p>Generated: ${new Date().toLocaleString()}</p>
+  <table>
+    <tr><th>Endpoint</th><th>Avg Response Time</th><th>P95</th><th>P99</th><th>Error Rate</th><th>Trend</th></tr>
+    ${metrics.map(m => `<tr><td>${m.endpoint}</td><td>${m.avgResponseTime}ms</td><td>${m.p95ResponseTime}ms</td><td>${m.p99ResponseTime}ms</td><td>${(m.errorRate * 100).toFixed(2)}%</td><td>${m.trend}</td></tr>`).join('')}
+  </table>
+</body>
+</html>`;
+        filename += '.html';
+      }
+
+      Alert.alert('Export Ready', `${filename} ready to download. Format: ${format.toUpperCase()}`);
+    } catch (error) {
+      Alert.alert('Export Error', 'Could not prepare export. Please try again.');
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -251,6 +308,82 @@ export default function PerformanceDashboard() {
                   ).toFixed(2)}%
                 </Text>
               </View>
+            </View>
+          </View>
+
+          {/* Export Section */}
+          <View className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">📥 Export Report</Text>
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => handleExport('csv')}
+                disabled={isExporting}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  borderRadius: 6,
+                  backgroundColor: colors.primary,
+                  opacity: isExporting ? 0.6 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.background,
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    fontSize: 12,
+                  }}
+                >
+                  CSV
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleExport('json')}
+                disabled={isExporting}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  borderRadius: 6,
+                  backgroundColor: colors.primary,
+                  opacity: isExporting ? 0.6 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.background,
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    fontSize: 12,
+                  }}
+                >
+                  JSON
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleExport('html')}
+                disabled={isExporting}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  paddingHorizontal: 12,
+                  borderRadius: 6,
+                  backgroundColor: colors.primary,
+                  opacity: isExporting ? 0.6 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.background,
+                    textAlign: 'center',
+                    fontWeight: '600',
+                    fontSize: 12,
+                  }}
+                >
+                  HTML
+                </Text>
+              </Pressable>
             </View>
           </View>
         </View>

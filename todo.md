@@ -621,3 +621,17 @@
 - [x] Test performance dashboard
 - [x] Test forecasting visualization
 - [x] Test optimization recommendations UI
+
+
+## Final Integration & Export (Phase 21)
+- [ ] Integrate dashboards into tab navigation
+- [ ] Add tab icons for new dashboard screens
+- [ ] Implement WebSocket connection service
+- [ ] Add real-time metric updates
+- [ ] Build export service for reports
+- [ ] Implement CSV export functionality
+- [ ] Implement PDF export functionality
+- [ ] Add export scheduling
+- [ ] Test tab navigation
+- [ ] Test WebSocket updates
+- [ ] Test export functionality

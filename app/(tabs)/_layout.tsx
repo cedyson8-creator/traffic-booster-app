@@ -63,6 +63,27 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="performance-dashboard"
+        options={{
+          title: "Performance",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="forecasting-viz"
+        options={{
+          title: "Forecast",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="optimization-ui"
+        options={{
+          title: "Optimize",
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="wand.and.stars" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
