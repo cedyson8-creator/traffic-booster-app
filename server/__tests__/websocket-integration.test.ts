@@ -16,6 +16,11 @@ describe('WebSocket Real-Time Integration', () => {
     perfEmitter = PerformanceEmitterService.getInstance();
     forecastEmitter = ForecastingEmitterService.getInstance();
     optimEmitter = OptimizationEmitterService.getInstance();
+    
+    // Stop all emitters to ensure clean state
+    perfEmitter.stop();
+    forecastEmitter.stop();
+    optimEmitter.stop();
   });
 
   afterEach(() => {
@@ -59,7 +64,6 @@ describe('WebSocket Real-Time Integration', () => {
       return new Promise<void>(resolve => {
         perfEmitter.on('update', (update) => {
           expect(Array.isArray(update.alerts)).toBe(true);
-          // Alerts may or may not be present
           resolve();
         });
 
@@ -145,7 +149,7 @@ describe('WebSocket Real-Time Integration', () => {
 
     it('should generate forecasts for specific days', () => {
       const forecasts = forecastEmitter.generateForecast(14);
-      expect(forecasts.length).toBe(15); // 0-14 inclusive
+      expect(forecasts.length).toBe(15);
       expect(forecasts[0].date).toBe('Today');
       expect(forecasts[1].date).toBe('+1d');
     });
@@ -207,22 +211,15 @@ describe('WebSocket Real-Time Integration', () => {
       });
     }, { timeout: 5000 });
 
-    it('should apply and unapply recommendations', async () => {
-      return new Promise<void>(resolve => {
-        optimEmitter.on('update', (update) => {
-          const rec = update.recommendations[0];
-
-          optimEmitter.applyRecommendation(rec.id);
-
-          optimEmitter.on('update', (update2) => {
-            const updated = update2.recommendations.find((r: any) => r.id === rec.id);
-            expect(updated?.applied).toBe(true);
-            resolve();
-          });
-        });
-      });
-
-      optimEmitter.start(100);
+    it('should apply recommendations', () => {
+      const recs = optimEmitter.getCurrentRecommendations();
+      const recToApply = recs[0];
+      
+      optimEmitter.applyRecommendation(recToApply.id);
+      
+      const updated = optimEmitter.getCurrentRecommendations();
+      const applied = updated.find(r => r.id === recToApply.id);
+      expect(applied?.applied).toBe(true);
     });
 
     it('should get recommendations by priority', () => {
