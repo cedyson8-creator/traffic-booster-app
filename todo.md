@@ -671,3 +671,18 @@
 - [x] Add metric expansion/collapse on performance dashboard
 - [x] Create 34 unit tests for dashboard features (all passing)
 - [ ] Test real-time updates end-to-end on mobile device
+
+
+## Advanced Features - Real Data, Export & Notifications (NEW)
+- [x] Create real data service for fetching from integrations
+- [x] Create export scheduler service with multiple formats (CSV, JSON, HTML, PDF)
+- [x] Create notifications service with preferences and filtering
+- [x] Create export scheduler UI screen with form and schedule management
+- [x] Create notifications UI screen with preferences and history
+- [x] Write 32 integration tests for all advanced features (all passing)
+- [ ] Connect export scheduler to backend email service
+- [ ] Connect notifications to push notification service
+- [ ] Add real data integration with Google Analytics API
+- [ ] Add real data integration with Meta API
+- [ ] Add export scheduler tab to tab bar navigation
+- [ ] Add notifications tab to tab bar navigation
