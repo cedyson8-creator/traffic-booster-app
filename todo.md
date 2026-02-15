@@ -686,3 +686,17 @@
 - [ ] Add real data integration with Meta API
 - [ ] Add export scheduler tab to tab bar navigation
 - [ ] Add notifications tab to tab bar navigation
+
+
+## Tab Navigation & Communication Services (NEW)
+- [x] Add export scheduler tab to tab bar navigation
+- [x] Add notifications/alerts tab to tab bar navigation
+- [x] Add icon mappings for new tabs
+- [x] Create email service with multiple notification types
+- [x] Create push notifications service with token management
+- [x] Create push notifications client hook (usePushNotifications)
+- [x] Write 30 comprehensive integration tests for email and push services (all passing)
+- [ ] Wire email service to backend export scheduler
+- [ ] Wire push notifications to backend notification events
+- [ ] Test email delivery with real SMTP provider
+- [ ] Test push notifications on iOS and Android devices

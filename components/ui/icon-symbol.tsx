@@ -26,6 +26,9 @@ const MAPPING = {
   "chart.line.uptrend.xyaxis": "show-chart",
   "calendar": "calendar-today",
   "envelope.fill": "mail",
+  "arrow.down.doc.fill": "download",
+  "bell.fill": "notifications-active",
+  "wand.and.stars": "auto-fix-high",
 } as IconMapping;
 
 /**
