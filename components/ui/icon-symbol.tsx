@@ -29,6 +29,8 @@ const MAPPING = {
   "arrow.down.doc.fill": "download",
   "bell.fill": "notifications-active",
   "wand.and.stars": "auto-fix-high",
+  "gear": "settings",
+  "clock.fill": "history",
 } as IconMapping;
 
 /**

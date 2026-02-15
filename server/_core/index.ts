@@ -15,6 +15,7 @@ import { ReportSchedulerService } from "../services/report-scheduler.service";
 import { WebSocketService } from "../services/websocket.service";
 import { EventAggregatorService } from "../services/event-aggregator.service";
 import { globalRateLimiter, endpointRateLimiter, paymentRateLimiter, exportRateLimiter, emailRateLimiter } from "../middleware/rate-limit.middleware";
+import notificationsRoutes from "../routes/notifications.routes";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -83,6 +84,9 @@ async function startServer() {
 
   // Social media routes
   app.use("/api/social-media", socialMediaRoutes);
+
+  // Notification routes
+  app.use("/api/notifications", notificationsRoutes);
 
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
