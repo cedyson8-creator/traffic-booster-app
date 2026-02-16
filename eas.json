@@ -26,13 +26,5 @@
         "gradleCommand": ":app:bundleRelease"
       }
     }
-  },
-  "submit": {
-    "production": {
-      "android": {
-        "serviceAccount": "./google-play-key.json",
-        "track": "internal"
-      }
-    }
   }
 }
