@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 5.0.0",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": false
+    },
+    "android-release": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "android-aab": {
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccount": "./google-play-key.json",
+        "track": "internal"
+      }
+    }
+  }
+}
