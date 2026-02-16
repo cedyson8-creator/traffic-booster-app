@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Check TypeScript
+        run: pnpm check
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -154,11 +157,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run tests
-        run: pnpm test
-
       - name: Check TypeScript
         run: pnpm check
 
       - name: Run linter
         run: pnpm lint || true
+
+      - name: Note about tests
+        run: echo "Tests require environment variables (SendGrid, Google Analytics, etc.). Run tests locally with: pnpm test"
