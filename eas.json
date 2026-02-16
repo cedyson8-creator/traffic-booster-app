@@ -1,6 +1,8 @@
 {
+  "projectId": "traffic-booster-app",
   "cli": {
     "version": ">= 12.0.0",
+    "appVersionSource": "local",
     "promptToConfigurePushNotifications": false
   },
   "build": {
