@@ -1,0 +1,130 @@
+name: Build Android
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.12.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Setup Android SDK (Manual)
+        run: |
+          # Set ANDROID_HOME
+          export ANDROID_HOME=$HOME/android-sdk
+          mkdir -p $ANDROID_HOME
+          
+          # Download and install Android SDK tools
+          cd $ANDROID_HOME
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          rm commandlinetools-linux-11076708_latest.zip
+          
+          # Create tools directory
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/ 2>/dev/null || true
+          
+          # Add to PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          
+          # Accept licenses
+          yes | sdkmanager --licenses || true
+          
+          # Install required packages
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125" || true
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > keystore.jks
+          ls -lh keystore.jks
+
+      - name: Prebuild Android
+        run: |
+          npx expo prebuild --platform android --clean --non-interactive
+
+      - name: Build Android App Bundle (AAB)
+        run: |
+          cd android
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=../keystore.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} \
+            -Dorg.gradle.jvmargs="-Xmx4096m"
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=../keystore.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }} \
+            -Dorg.gradle.jvmargs="-Xmx4096m"
+
+      - name: Find build outputs
+        run: |
+          echo "=== AAB Files ==="
+          find android/app/build/outputs/bundle -name "*.aab" -type f 2>/dev/null || echo "No AAB found"
+          echo ""
+          echo "=== APK Files ==="
+          find android/app/build/outputs/apk -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/apk/release/app-release.apk
+          body: |
+            # Traffic Booster Pro Release
+            
+            **Version:** ${{ github.ref_name }}
+            
+            ## Files
+            - `app-release.aab` - Android App Bundle (for Google Play Store)
+            - `app-release.apk` - Android APK (for direct installation)
+            
+            ## Installation
+            
+            ### Google Play Store
+            Upload `app-release.aab` to Google Play Console
+            
+            ### Direct Installation
+            1. Download `app-release.apk`
+            2. Transfer to Android device
+            3. Enable "Unknown Sources" in Settings
+            4. Install the APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up secrets
+        if: always()
+        run: |
+          rm -f keystore.jks
