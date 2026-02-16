@@ -1,4 +1,5 @@
 {
+  "projectId": "traffic-booster-pro",
   "cli": {
     "version": ">= 12.0.0",
     "appVersionSource": "local",
