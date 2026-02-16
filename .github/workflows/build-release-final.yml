@@ -1,0 +1,114 @@
+name: Build & Release Android App
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.12.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          ndk: 27.1.12297006
+
+      - name: Prebuild Android
+        run: npx expo prebuild --platform android --clean --non-interactive
+        env:
+          CI: 1
+
+      - name: Build Android APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+      - name: Build Android AAB
+        run: |
+          cd android
+          ./gradlew bundleRelease
+        env:
+          JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+
+      - name: Find build artifacts
+        run: |
+          echo "APK files:"
+          find android -name "*.apk" -type f
+          echo "AAB files:"
+          find android -name "*.aab" -type f
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+          body: |
+            # Traffic Booster Pro Release
+            
+            **Version:** ${{ github.ref_name }}
+            
+            ## Download Artifacts
+            
+            - **APK** - For direct installation on Android devices
+            - **AAB** - For submission to Google Play Store
+            
+            ## Installation
+            
+            ### Google Play Store
+            1. Download the AAB file
+            2. Upload to Google Play Console
+            
+            ### Direct Installation
+            1. Download the APK file
+            2. Transfer to Android device
+            3. Install the APK
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
