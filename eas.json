@@ -1,6 +1,8 @@
 {
+  "projectId": "traffic-booster-pro",
   "cli": {
-    "version": ">= 5.0.0",
+    "version": ">= 12.0.0",
+    "appVersionSource": "local",
     "promptToConfigurePushNotifications": false
   },
   "build": {
@@ -12,7 +14,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": false
+      "autoIncrement": false,
+      "android": {
+        "buildType": "app-bundle"
+      }
     },
     "android-release": {
       "android": {

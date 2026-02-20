@@ -1,9 +1,10 @@
-name: EAS Build Android
+name: EAS Build
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,44 +12,42 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - name: Setup EAS CLI
-        run: npm install -g eas-cli
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9.12.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets['Expo to github'] }}
 
       - name: Build with EAS
-        run: |
-          eas build --platform android --non-interactive --wait
+        run: eas build --platform android --non-interactive
         env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
-
-      - name: Download build artifacts
-        run: |
-          # EAS Build outputs artifacts to a specific location
-          # We'll create a release with the build artifacts
-          echo "Build completed successfully"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          body: |
-            # Traffic Booster Pro Release
-            
-            **Version:** ${{ github.ref_name }}
-            
-            Build created with EAS Build (Expo's managed build service).
-            
-            ## Installation
-            
-            ### Google Play Store
-            Upload the AAB file to Google Play Console
-            
-            ### Direct Installation
-            Download the APK file and install on your Android device.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: 1
